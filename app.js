@@ -1,6 +1,16 @@
 (function () {
   const D = window.DATA, A = 'assets/';
   const $ = (id) => document.getElementById(id);
+  // Картинки не грузим «про запас»: каждая новая <img> — ленивая (грузится, когда её экран/лента подошли к экрану),
+  // а после показа первого экрана остальное тихо догружается в фоне, чтобы переходы были мгновенными.
+  const innerDesc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+  Object.defineProperty(Element.prototype, 'innerHTML', { configurable: true, get() { return innerDesc.get.call(this); },
+    set(v) { innerDesc.set.call(this, typeof v === 'string' ? v.replace(/<img\b/g, '<img loading="lazy" decoding="async"') : v); } });
+  window.addEventListener('load', () => setTimeout(() => {
+    const queue = [...new Set([...document.images].filter((i) => !i.complete).map((i) => i.currentSrc || i.src))];
+    const next = () => { const s = queue.shift(); if (!s) return; const im = new Image(); im.decoding = 'async'; im.onload = im.onerror = () => setTimeout(next, 80); im.src = s; };
+    next(); next();
+  }, 1200));
   const tag = ([kind, text]) => `<span class="tag ${kind}">${text}</span>`;
   const header = (text, chevron = true, go = '') => `
     <${chevron ? 'button' : 'div'} class="header ${chevron ? 'tap' : ''}" ${go ? `data-go="${go}"` : ''}>
@@ -191,7 +201,7 @@
     <div class="art-nav"><button class="back tap" data-back="article" aria-label="Назад"><i></i></button><button class="share tap" aria-label="Поделиться"><i></i></button></div>
     <div class="art-scroll">
       <div class="art-hero"><img src="${A}${AR.hero}" alt=""></div>
-      <div class="art-src"><span class="logo tile" style="background:#ff1a2d"><img src="${A}logos/kap.svg" alt="" style="display:none"><b style="color:#fff;font:600 28px/32px Roboto">K</b></span>
+      <div class="art-src"><span class="logo tile" style="background:#ff1a2d"><b style="color:#fff;font:600 28px/32px Roboto">K</b></span>
         <div><b>${AR.source}</b><span>${AR.time}</span></div></div>
       <div class="art-tags">${AR.tags.map((t, i) => `<span class="art-tag${i === 0 ? ' info' : ''}">${t}</span>`).join('')}</div>
       <h1 class="art-title">${AR.title}</h1>
@@ -213,7 +223,7 @@
   $('screen-note').innerHTML = `
     <div class="note-nav"><button class="back tap" data-back="note" aria-label="Назад"><i></i></button><b>${NT.title}</b><span class="sp"></span></div>
     <div class="note-scroll" id="note-scroll">
-      <div class="note-hero"><div><img src="${A}note/hero1.png" alt=""><img src="${A}note/hero2.png" alt=""><img src="${A}note/hero3.png" alt=""></div></div>
+      <div class="note-hero"><div><img src="${A}note/hero3.png" alt=""></div></div>
       <div class="note-chips" id="note-chips"></div>
       <div id="note-body"></div>
     </div>
