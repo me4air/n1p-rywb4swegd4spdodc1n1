@@ -16,7 +16,7 @@
     { id: 'msft', name: 'Microsoft', ticker: 'MSFT', price: `521${nb}$`, delta: `↑${nb}4,1${nb}$${nb}(+0,8${nb}%)`, logo: L.msft, aliases: ['майкрософт', 'microsoft'] },
     { id: 'nvda', name: 'NVIDIA', ticker: 'NVDA', price: `188${nb}$`, delta: `↑${nb}3,5${nb}$${nb}(+1,9${nb}%)`, logo: L.nvidia, aliases: ['нвидиа', 'энвидиа', 'nvidia'] },
     { id: 'googl', name: 'Alphabet', ticker: 'GOOGL', price: `287${nb}$`, delta: `↓${nb}1,7${nb}$${nb}(−0,6${nb}%)`, neg: true, logo: L.google, aliases: ['альфабет', 'гугл', 'google', 'alphabet'] },
-    { id: 'zlbrs', name: 'Жолбарыс', ticker: 'ZLBRS', price: `от${nb}10${nb}000${nb}$`, delta: `22%${nb}годовых`, logo: L.zhol, aliases: ['жолбарыс', 'zholbarys'] },
+    { id: 'zlbrs', name: 'Жолбарыс электро', ticker: 'ZLBRS', price: `от${nb}10${nb}000${nb}$`, delta: `10,5%${nb}годовых`, logo: L.zhol, aliases: ['жолбарыс', 'zholbarys', 'электро', 'electro'] },
   ];
   const by = Object.fromEntries(items.map((i) => [i.id, i]));
   window.SEARCH = {

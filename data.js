@@ -44,7 +44,7 @@ window.DATA = {
   },
 
   products: [ // DESIGN (тексты, цвета, чипы)
-    { title: ['Жолбарыс', 'электро'], promo: '+66%', chips: [`От${nb}10${nb}000${nb}$`, `3${nb}года`],
+    { note: true, title: ['Жолбарыс', 'электро'], promo: '+21%', chips: [`От${nb}10${nb}000${nb}$`, `2${nb}года`],
       bg: 'linear-gradient(105deg,#1e243a 30.4%,#323775 105%)',
       art: 'imgFrame312121540.png', artStyle: 'left:296px;top:-70.4px;width:253.7px;height:359px;transform:scaleX(-1)' },
     { title: ['Тулпар с защитой капитала'], promo: '+16%', chips: [`От${nb}10${nb}000${nb}$`, `5${nb}лет`],
