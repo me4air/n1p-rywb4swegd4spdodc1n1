@@ -37,7 +37,7 @@
     dividends: (() => {
       const by = (tk) => window.CATALOG.items.find((i) => i.ticker === tk);
       const card = (title, tickers, all) => ({ title, all, items: tickers.map((tk) => { const i = by(tk); return S(i.name, i.ticker, i.price, i.delta, i.logo, i.neg); }) });
-      return [card('Выплаты в этом месяце', ['KSPI', 'HSBK', 'AAPL'], 8), card('Высокая дивидендная доходность', ['KZAP', 'KO', 'JNJ'], 10), card('Стабильные дивиденды', ['PG', 'MSFT', 'KCEL'], 12)];
+      return [card('Выплаты в этом месяце', ['KSPI', 'HSBK', 'AAPL'], 8), card('Высокие дивиденды', ['KZAP', 'KO', 'JNJ'], 10), card('Стабильные дивиденды', ['PG', 'MSFT', 'KCEL'], 12)];
     })(),
 
     // «Подборки ценных бумаг» — промо-баннеры. art — иллюстрация (SVG-глиф на цветном фоне), logos — стопка логотипов (до 5); если бумаг больше 5, в кружке «N+» (count − 5), иначе кружка нет
