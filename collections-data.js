@@ -33,9 +33,16 @@
       return [split('Лидеры роста за сегодня', pick(1)), split('Главные падения дня', pick(-1))];
     })(),
 
+    // «Компании и дивиденды» — только в «Купить»; бумаги и котировки берутся из каталога
+    dividends: (() => {
+      const by = (tk) => window.CATALOG.items.find((i) => i.ticker === tk);
+      const card = (title, tickers, all) => ({ title, all, items: tickers.map((tk) => { const i = by(tk); return S(i.name, i.ticker, i.price, i.delta, i.logo, i.neg); }) });
+      return [card('Выплаты в этом месяце', ['KSPI', 'HSBK', 'AAPL'], 8), card('Высокая дивидендная доходность', ['KZAP', 'KO', 'JNJ'], 10), card('Стабильные дивиденды', ['PG', 'MSFT', 'KCEL'], 12)];
+    })(),
+
     // «Подборки ценных бумаг» — промо-баннеры. art — иллюстрация (SVG-глиф на цветном фоне), logos — стопка логотипов (до 5); если бумаг больше 5, в кружке «N+» (count − 5), иначе кружка нет
     themes: [
-      { title: 'Лидеры по ROI', sub: 'Лучшие по рентабельности собственного капитала', count: 15, color: '#8e5aff', img: 'coll/promo-roi.png', imgStyle: 'height:101.47%;left:10.54%;top:-7.5%;width:78.92%',
+      { title: 'Высокий потенциал роста', sub: 'Лучшие по рентабельности собственного капитала', count: 15, color: '#8e5aff', img: 'coll/promo-roi.png', imgStyle: 'height:101.47%;left:10.54%;top:-7.5%;width:78.92%',
         logos: [L.nvidia, L.apple, L.msft, L.coca, L.google] },
       { title: 'Голубые фишки Казахстана', sub: 'Крупнейшие и самые ликвидные компании KASE', count: 12, color: '#ffb300', img: 'coll/promo-kz.png', imgStyle: 'height:111.7%;left:8.59%;top:-8%;width:86.88%',
         logos: [L.kaspi, L.halyk, L.kap, L.aira, L.kcell] },

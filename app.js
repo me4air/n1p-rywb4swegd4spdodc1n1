@@ -110,7 +110,7 @@
   const collCard = (c) => { const ex = c.extra || []; return `
       <div class="card collection"><h3>${c.title}</h3>
         <div class="list">${c.items.map(instr).join('')}
-          <div class="coll-more"><button class="more-btn tap">Показать все ${c.items.length + ex.length}</button></div>
+          <div class="coll-more"><button class="more-btn tap">Показать все ${c.all || c.items.length + ex.length}</button></div>
         </div></div>`; };
   const collRow = (list) => `<div class="hscroll collections">${list.map(collCard).join('')}</div>`;
   const CL = window.COLL;
@@ -129,7 +129,7 @@
       ${t.img ? `<img class="p-img" src="${A}${t.img}" style="${t.imgStyle}" alt="">` : `<svg class="p-svg" viewBox="0 0 120 100" aria-hidden="true">${ART[t.art]}</svg>`}
       <div class="p-top"><span class="p-cnt">${t.count} бумаг</span>
         <span class="p-logos">${t.logos.slice(0, 5).map(themeLogo).join('')}${t.count > 5 ? `<span class="more">${t.count - 5}+</span>` : ''}</span></div>
-      <div class="p-txt"><b>${t.title}</b><span>${t.sub}</span></div>
+      <div class="p-txt"><b>${t.title}</b></div>
     </a>`;
   const themesHtml = () => `<div class="hscroll promos">${CL.themes.map(themeBanner).join('')}</div>`;
   const greatCard = (g) => `
@@ -171,9 +171,6 @@
 
     ${header('Взлеты и падения дня', false)}
     ${collRow(CL.movers)}
-
-    ${header('Подборки ценных бумаг', false)}
-    ${themesHtml()}
 
     ${header('Advisory-сервис', false)}
     <div class="hscroll advisories">${D.advisory.map((x) => `
@@ -440,12 +437,12 @@
     ${header('Продукты N1broker', false)}
     <div class="hscroll buy-chips">${BY.tabs.map((t) => `<button class="buy-chip tap" data-tab="${t}">${t}</button>`).join('')}</div>
     <div id="buy-products"></div>
-    ${header('Взлеты и падения дня', false)}
-    ${collRow(CL.movers)}
-    ${header('Подборки ценных бумаг', false)}
-    ${themesHtml()}
     <div class="header sub-h"><h2>${CL.roi.title}</h2><p>${CL.roi.sub}</p></div>
     ${collRow(CL.roi.sectors)}
+    ${header('Подборки ценных бумаг', false)}
+    ${themesHtml()}
+    ${header('Компании и дивиденды', false)}
+    ${collRow(CL.dividends)}
     ${header('Портфели великих', false)}
     <div class="hscroll greats">${CL.greats.map(greatCard).join('')}</div>
     ${header('Просмотрено недавно', false)}

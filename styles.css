@@ -694,3 +694,5 @@ button { font: inherit; color: inherit; background: none; border: 0; text-align:
 .instr .logo, .pcard .pl .logo, .pcard .pl .tile { -webkit-mask: url(assets/squircle.svg) center / 100% 100% no-repeat; mask: url(assets/squircle.svg) center / 100% 100% no-repeat; }
 .instr .logo.tile, .instr .logo.sq, .pcard .pl .tile { position: relative; border-radius: 0; box-shadow: none; }
 .instr .logo.tile::after, .instr .logo.sq::after, .pcard .pl .tile::after { content: ''; position: absolute; inset: 0; background: url(assets/squircle-ring.svg) center / 100% 100% no-repeat; pointer-events: none; }
+
+.p-txt b { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
