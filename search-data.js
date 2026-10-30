@@ -4,8 +4,8 @@
   const L = {
     kaspi: 'imgVisualContainer.png', halyk: 'imgVisualContainer1.png',
     apple: { src: 'logos/apple.svg', bg: '#000', pad: 11, invert: true },
-    tesla: { src: 'pf/logo-tesla.png', cls: 'zoom' }, msft: { src: 'pf/logo-microsoft.png' }, google: { src: 'pf/logo-google.png' },
-    nvidia: { src: 'logos/nvidia.svg', bg: '#fff', pad: 4, crop: 'nvidia' }, zhol: { src: 'pf/logo-zholbarys.png', cls: 'pad' },
+    tesla: { src: 'logos/tesla.svg', bg: '#e31937', pad: 11 }, msft: { src: 'pf/logo-microsoft.png' }, google: { src: 'pf/logo-google.png' },
+    nvidia: { src: 'logos/nvidia.svg', bg: '#fff', pad: 4, crop: 'nvidia' }, zhol: { src: 'zholbarys-electro.png' },
   };
   // Только эти бумаги находятся поиском (aliases — ручной ввод по-русски и по тикеру)
   const items = [

@@ -18,7 +18,7 @@
     </${chevron ? 'button' : 'div'}>`;
 
   const mainBanner = (b, snack) => `
-    <a class="main-banner tap"${snack ? ' data-snack="1"' : ''}>
+    <a class="main-banner tap"${b.note ? ' data-note="1"' : snack ? ' data-snack="1"' : ''}>
       <div class="bg" style="background:${b.bg}">${b.bgImg ? `<img src="${A}${b.bgImg.src}" style="position:absolute;max-width:none;${b.bgImg.style}" alt="">` : ''}</div>
       <div class="row">
         <div class="text"><b>${b.title.join('<br>')}</b><span>${b.sub}</span></div>
@@ -90,6 +90,8 @@
     <button class="instr tap">
       ${typeof i.logo === 'string'
         ? `<img class="logo" src="${A}${i.logo}" alt="">`
+        : i.logo.txt ? `<span class="logo tile txt" style="background:${i.logo.bg};color:${i.logo.color}"><b>${i.logo.txt}</b></span>`
+        : !i.logo.bg ? `<span class="logo sq"><img src="${A}${i.logo.src}" alt=""></span>`
         : `<span class="logo tile" style="background:${i.logo.bg};padding:${i.logo.pad}px"><img src="${A}${i.logo.src}" alt="" class="${i.logo.invert ? 'inv' : ''} ${i.logo.crop || ''}"></span>`}
       <div class="data">
         <div class="row"><span class="name">${i.name}</span><span class="price">${i.price}</span></div>
@@ -104,8 +106,38 @@
       <div class="ttl">${l.title}</div>
     </a>`;
 
-  const collectionsHtml = () => `<div class="hscroll collections">${D.collections.map((c) => `
-      <div class="card collection"><h3>${c.title}</h3><div class="list">${c.items.map(instr).join('')}</div></div>`).join('')}</div>`;
+  // карточка подборки: заголовок, 3 бумаги, «Показать все N»
+  const collCard = (c) => { const ex = c.extra || []; return `
+      <div class="card collection"><h3>${c.title}</h3>
+        <div class="list">${c.items.map(instr).join('')}
+          <div class="coll-more"><button class="more-btn tap">Показать все ${c.items.length + ex.length}</button></div>
+        </div></div>`; };
+  const collRow = (list) => `<div class="hscroll collections">${list.map(collCard).join('')}</div>`;
+  const CL = window.COLL;
+  const themeLogo = (l) => typeof l === 'string' ? `<span><img src="${A}${l}" alt=""></span>`
+    : l.bg ? `<span style="background:${l.bg};padding:${Math.round(l.pad / 2)}px"><img src="${A}${l.src}" alt="" class="${l.invert ? 'inv' : ''} ${l.crop || ''}"></span>` : `<span><img src="${A}${l.src}" alt=""></span>`;
+  const ART = { // иллюстрации баннеров подборок (упрощённые, вместо 3D-картинок макета)
+    arrow: '<path d="M60 8 100 58H76v38H44V58H20z" fill="#2f7bf5" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>',
+    sun: '<circle cx="60" cy="52" r="22" fill="#fcd34d"/><g stroke="#fcd34d" stroke-width="4" stroke-linecap="round">' + [0,1,2,3,4,5,6,7].map((k) => { const a = k * Math.PI / 4; return `<path d="M${60 + 30 * Math.cos(a)} ${52 + 30 * Math.sin(a)}L${60 + 40 * Math.cos(a)} ${52 + 40 * Math.sin(a)}"/>`; }).join('') + '</g>',
+    coins: '<g fill="#fcd34d" stroke="#b45309" stroke-width="3"><ellipse cx="46" cy="78" rx="28" ry="9"/><path d="M18 78v-12c0 5 12 9 28 9s28-4 28-9v12"/><ellipse cx="46" cy="66" rx="28" ry="9"/><ellipse cx="76" cy="46" rx="22" ry="7"/><path d="M54 46v-9c0 4 10 7 22 7s22-3 22-7v9"/><ellipse cx="76" cy="37" rx="22" ry="7"/></g>',
+    shield: '<path d="M60 10 98 24v30c0 22-16 36-38 44C38 90 22 76 22 54V24z" fill="#60a5fa" stroke="#fff" stroke-width="4" stroke-linejoin="round"/><path d="M42 54l12 12 26-28" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>',
+    chip: '<g fill="#a5b4fc" stroke="#fff" stroke-width="3"><rect x="34" y="26" width="52" height="52" rx="8"/></g><rect x="46" y="38" width="28" height="28" rx="4" fill="#4338ca"/><g stroke="#fff" stroke-width="4" stroke-linecap="round">' + [44,56,68,76].map((v) => `<path d="M${v} 14v10M${v} 80v10M24 ${v - 2}h8M88 ${v - 2}h8"/>`).join('') + '</g>',
+    rocket: '<path d="M60 8c16 14 22 34 16 58H44C38 42 44 22 60 8z" fill="#fff" stroke="#fde68a" stroke-width="3"/><circle cx="60" cy="38" r="8" fill="#38bdf8"/><path d="M44 66 30 82l16-4zM76 66l14 16-16-4z" fill="#fde68a"/><path d="M52 70h16l-8 22z" fill="#fbbf24"/>',
+  };
+  const themeBanner = (t) => `
+    <a class="promo tap" data-snack="1" style="background:${t.color || t.bg}">
+      ${t.img ? `<img class="p-img" src="${A}${t.img}" style="${t.imgStyle}" alt="">` : `<svg class="p-svg" viewBox="0 0 120 100" aria-hidden="true">${ART[t.art]}</svg>`}
+      <div class="p-top"><span class="p-cnt">${t.count} бумаг</span>
+        <span class="p-logos">${t.logos.slice(0, 5).map(themeLogo).join('')}${t.count > 5 ? `<span class="more">${t.count - 5}+</span>` : ''}</span></div>
+      <div class="p-txt"><b>${t.title}</b><span>${t.sub}</span></div>
+    </a>`;
+  const themesHtml = () => `<div class="hscroll promos">${CL.themes.map(themeBanner).join('')}</div>`;
+  const greatCard = (g) => `
+    <a class="great tap" data-snack="1">
+      <div class="g-bg" style="background:${g.bg}"></div>
+      ${g.img ? `<img class="g-img" src="${A}${g.img}" style="${g.imgStyle}" alt="">` : ''}
+      <div class="g-txt"><div><b>${g.name}</b><span>${g.count} бумаг</span></div><p>${g.sub}</p></div>
+    </a>`;
 
   const n = D.news;
   $('screen-home').innerHTML = `
@@ -137,8 +169,11 @@
     ${header('Новое от N1broker', true, 'buy')}
     <div class="hscroll products">${D.products.map(product).join('')}</div>
 
+    ${header('Взлеты и падения дня', false)}
+    ${collRow(CL.movers)}
+
     ${header('Подборки ценных бумаг', false)}
-    ${collectionsHtml()}
+    ${themesHtml()}
 
     ${header('Advisory-сервис', false)}
     <div class="hscroll advisories">${D.advisory.map((x) => `
@@ -195,27 +230,54 @@
     <div style="height:8px"></div>`;
 
   // ---------- Детальная новость (Figma 104:26920) ----------
-  const AR = window.ARTICLE.diesel;
   const arText = (s) => s.replace(/\[([A-Z.]+)\]/g, '<b>[$1]</b>');
-  $('screen-article').innerHTML = `
-    <div class="art-nav"><button class="back tap" data-back="article" aria-label="Назад"><i></i></button><button class="share tap" aria-label="Поделиться"><i></i></button></div>
-    <div class="art-scroll">
-      <div class="art-hero"><img src="${A}${AR.hero}" alt=""></div>
-      <div class="art-src"><span class="logo tile" style="background:#ff1a2d"><b style="color:#fff;font:600 28px/32px Roboto">K</b></span>
-        <div><b>${AR.source}</b><span>${AR.time}</span></div></div>
-      <div class="art-tags">${AR.tags.map((t, i) => `<span class="art-tag${i === 0 ? ' info' : ''}">${t}</span>`).join('')}</div>
-      <h1 class="art-title">${AR.title}</h1>
-      <div class="art-body">${AR.body.map((p) => `<p>${arText(p)}</p>`).join('')}</div>
-      <h2 class="art-h">${AR.opinionTitle}</h2>
-      <div class="art-body"><p>${AR.opinion}</p></div>
-      <h2 class="art-h">${AR.relatedTitle}</h2>
-      <div class="art-rel">${AR.related.map((i) => `
+  const relCell = (i) => `
         <button class="instr tap">${catLogo(i.logo)}
           <div class="data">
             <div class="row"><span class="name">${i.name}</span><span class="price">${i.price}</span></div>
             <div class="row"><span class="ticker">${i.ticker}</span><span class="delta${i.neg ? ' neg' : ''}">${i.delta}</span></div>
-          </div></button>`).join('')}</div>
-    </div>`;
+          </div></button>`;
+  $('screen-article').innerHTML = `
+    <div class="art-nav"><button class="back tap" data-back="article" aria-label="Назад"><i></i></button><button class="share tap" aria-label="Поделиться"><i></i></button></div>
+    <div class="art-scroll" id="art-scroll"></div>
+    <div class="art-promo" id="art-promo" role="status"></div>`;
+  function renderArticle(id) {
+    const AR = window.ARTICLE[id];
+    const related = AR.relatedFrom === 'etf' ? window.NOTE.etf.map((e) => ({ logo: 'note/' + e.logo, name: e.name, price: e.price, ticker: e.t, delta: e.delta })) : AR.related;
+    const idea = AR.ideas && `
+      <h2 class="art-h art-idea-h">${AR.ideas.title}</h2>
+      <div class="art-pad"><div class="art-idea tap" data-note="1">
+        <div class="ai-img"><img src="${A}${AR.ideas.banner}" alt=""></div>
+        <div class="ai-body"><div class="ai-stats">${AR.ideas.stats.map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>
+        <p>${AR.ideas.text}</p></div>
+        <button class="art-btn tap" data-note="1">${AR.ideas.button}</button>
+      </div></div>`;
+    $('art-scroll').innerHTML = `
+      <div class="art-hero"><img src="${A}${AR.hero}" alt=""></div>
+      <div class="art-src"><span class="logo tile" style="background:${(AR.logo || {}).bg || '#ff1a2d'}"><b style="color:#fff;font:600 ${AR.logo ? 20 : 28}px/32px Roboto">${(AR.logo || {}).text || 'K'}</b></span>
+        <div><b>${AR.source}</b><span>${AR.time}</span></div></div>
+      <div class="art-tags">${AR.tags.map((t, i) => `<span class="art-tag${i === 0 ? ' info' : ''}">${t}</span>`).join('')}</div>
+      <h1 class="art-title">${AR.title}</h1>
+      <div class="art-body">${AR.body.map((p) => `<p>${arText(p)}</p>`).join('')}</div>
+      ${AR.sections.map((x) => `<h2 class="art-h">${x.title}</h2><div class="art-body"><p>${x.text}</p></div>`).join('')}
+      ${idea || ''}
+      <h2 class="art-h">${AR.relatedTitle}</h2>
+      <div class="art-rel">${related.map(relCell).join('')}</div>`;
+    $('art-scroll').scrollTop = 0;
+    // снекбар «Есть связанная идея»: только если у новости есть идея
+    const pr = $('art-promo'); pr.classList.remove('show'); promoOn = !!(AR.ideas && AR.promo);
+    pr.innerHTML = promoOn ? `<div class="ap-box"><img src="${A}article/lightning.svg" alt=""><div class="ap-t"><b>${AR.promo.title}</b><span>${AR.promo.text}</span></div><button class="ap-act tap" data-promo>${AR.promo.action}</button></div>` : '';
+    clearTimeout(promoT); promoT = setTimeout(updatePromo, 700);
+  }
+  // Показ/скрытие снекбара: скрыт, пока заголовок идеи в зоне экрана (появился снизу или уже выше), виден, когда заголовок ещё ниже экрана
+  let promoOn = false, promoT = 0, promoTick = false;
+  function updatePromo() {
+    const pr = $('art-promo'), sc = $('art-scroll'), h = sc.querySelector('.art-idea-h');
+    if (!promoOn || !h || $('screen-article').hidden) { pr.classList.remove('show'); return; }
+    pr.classList.toggle('show', h.getBoundingClientRect().top >= sc.getBoundingClientRect().bottom);
+  }
+  $('art-scroll').addEventListener('scroll', () => { if (promoTick) return; promoTick = true; requestAnimationFrame(() => { promoTick = false; updatePromo(); }); }, { passive: true });
+  renderArticle('diesel');
 
   // ---------- Страница структурной ноты (Figma 106:27505 · 130:31357 · 130:31714) ----------
   const NT = window.NOTE;
@@ -378,8 +440,14 @@
     ${header('Продукты N1broker', false)}
     <div class="hscroll buy-chips">${BY.tabs.map((t) => `<button class="buy-chip tap" data-tab="${t}">${t}</button>`).join('')}</div>
     <div id="buy-products"></div>
+    ${header('Взлеты и падения дня', false)}
+    ${collRow(CL.movers)}
     ${header('Подборки ценных бумаг', false)}
-    ${collectionsHtml()}
+    ${themesHtml()}
+    <div class="header sub-h"><h2>${CL.roi.title}</h2><p>${CL.roi.sub}</p></div>
+    ${collRow(CL.roi.sectors)}
+    ${header('Портфели великих', false)}
+    <div class="hscroll greats">${CL.greats.map(greatCard).join('')}</div>
     ${header('Просмотрено недавно', false)}
     <div class="section-pad"><div class="card recent"><div class="list">${recentItems.map((i) => `
       <button class="instr tap">${logoHtml(i.logo)}
@@ -597,9 +665,9 @@
     if (name === current) return;
     const prev = current; current = name;
     if (name === 'search' && prev && prev !== 'search' && prev !== 'note') searchFrom = prev; // поиск — поверх экрана-источника; возврат с ноты его не меняет
-    if (name === 'article' && prev && prev !== 'article') articleFrom = prev;
+    if (name === 'article' && prev && prev !== 'article' && prev !== 'note') articleFrom = prev; // возврат с ноты не меняет источник статьи
     if (name === 'note' && prev && prev !== 'note') noteFrom = prev;
-    hideSnack();
+    hideSnack(); $('art-promo').classList.remove('show');
     screens.forEach((s) => { $('screen-' + s).hidden = s !== name; });
     document.querySelectorAll('.tab').forEach((el) => el.classList.toggle('active', el.dataset.go === name));
     document.querySelector('.phone').classList.toggle('no-tabs', name === 'news' || name === 'catalog' || name === 'article' || name === 'note');
@@ -626,7 +694,7 @@
     if (bc) { buyTab = bc.dataset.tab; renderBuyProducts(); }
     if (e.target.closest('[data-back="search"]')) go(searchFrom);
     const nw = e.target.closest('[data-news]');
-    if (nw) { if (nw.dataset.news === 'diesel') { go('article'); $('screen-article').querySelector('.art-scroll').scrollTop = 0; } else showSnack(); }
+    if (nw) { if (window.ARTICLE[nw.dataset.news]) { renderArticle(nw.dataset.news); go('article'); } else showSnack(); }
     if (e.target.closest('[data-back="article"]')) go(articleFrom);
     if (e.target.closest('[data-note]')) { noteTab = 'overview'; renderNote(); go('note'); $('note-scroll').scrollTop = 0; }
     else if (e.target.closest('[data-snack]')) showSnack(window.NOTE.bannerSnack);
@@ -636,6 +704,10 @@
       const top = $('note-scroll').scrollTop, stuck = $('note-scroll').querySelector('.note-chips').offsetTop; noteTab = nc.dataset.nt; renderNote(); $('note-scroll').scrollTop = Math.min(top, stuck);
     }
     if (e.target.closest('[data-doc]')) showSnack(window.NOTE.docSnack);
+    if (e.target.closest('[data-promo]')) { // тап по снекбару: прокрутить к идее и убрать его
+      const sc = $('art-scroll'), h = sc.querySelector('.art-idea-h'); $('art-promo').classList.remove('show');
+      sc.scrollTo({ top: sc.scrollTop + h.getBoundingClientRect().top - sc.getBoundingClientRect().top - 8, behavior: 'smooth' });
+    }
     if (e.target.closest('[data-buy]')) showSnack(window.NOTE.buySnack);
     if (e.target.closest('[data-media]')) showSnack(window.NOTE.overview.mediaSnack);
     const na = e.target.closest('[data-acc]');

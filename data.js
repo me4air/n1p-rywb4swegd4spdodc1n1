@@ -36,10 +36,10 @@ window.DATA = {
     ],
     leadTags: [['success', `BP ↑${nb}1,54${nb}%`], ['success', `XOM ↑${nb}22,01${nb}%`], ['negative', `CVX ↓${nb}0,54${nb}%`]],
     items: [
-      { src: 'Kapital.kz', time: '2 ч. назад', title: `Kaspi.kz: выручка за девять месяцев выросла на 21${nb}%`,
-        tags: [['success', `KSPI ↑${nb}1,54${nb}%`], ['negative', `ALTB ↓${nb}21,54${nb}%`]], img: 'imgThumb.png' },
+      { id: 'power', src: 'Финансовый вестник', time: '3 ч. назад', title: 'Рост ИИ даёт электроэнергетике большой потенциал роста',
+        tags: [['success', `URA ↑${nb}4,11${nb}%`], ['success', `XLU ↑${nb}0,82${nb}%`]], img: 'news/power-thumb.jpg' },
       { src: 'N1broker', time: 'Вчера', title: 'N1broker запустил продажу нового структурного продукта',
-        tags: [['info', `ZLBRS · 18%${nb}годовых`]], img: 'imgThumb1.png' },
+        tags: [['info', `ZLBRS · 10,5%${nb}годовых`]], img: 'zholbarys-electro.png' },
     ],
   },
 
@@ -47,7 +47,7 @@ window.DATA = {
     { note: true, title: ['Жолбарыс', 'электро'], promo: '+21%', chips: [`От${nb}10${nb}000${nb}$`, `2${nb}года`],
       bg: 'linear-gradient(105deg,#1e243a 30.4%,#323775 105%)',
       art: 'imgFrame312121540.png', artStyle: 'left:296px;top:-70.4px;width:253.7px;height:359px;transform:scaleX(-1)' },
-    { title: ['Тулпар с защитой капитала'], promo: '+16%', chips: [`От${nb}10${nb}000${nb}$`, `5${nb}лет`],
+    { title: ['Самрук с защитой капитала'], promo: '+14%', chips: [`От${nb}500${nb}000${nb}₸`, `2${nb}года`],
       bg: 'linear-gradient(105.7deg,#5732bd 30.4%,#0b146c 105%)',
       art: 'imgFrame312121541.png', artStyle: 'left:215.6px;top:-6.7px;width:198px;height:217.4px;transform:scaleX(-1)' },
     { title: ['Арыстан электро доход в тенге'], promo: '+22%', chips: [`От${nb}1${nb}000${nb}000${nb}₸`, `3${nb}года`],
@@ -101,7 +101,7 @@ window.DATA = {
       { label: 'История', icon: 'clock.svg' },
     ],
     banners: [
-      { title: ['Жолбарыс электро'], sub: 'Молниеносный рост инвестиций в долларах',
+      { note: true, title: ['Жолбарыс электро'], sub: 'Молниеносный рост инвестиций в долларах',
         bg: 'linear-gradient(183.88deg,#00030b 77.5%,#16326b 96.8%)',
         bgImg: { src: 'imgFrame312121540.png', style: 'left:393px;top:-58.4px;width:200.7px;height:284.1px;transform:scaleX(-1);transform-origin:left top' } },
       { title: ['Самрук в тенге'], sub: 'Высокая доходность<br>с защитой капитала',
@@ -113,7 +113,7 @@ window.DATA = {
         items: [
           { logo: 'imgVisualContainer.png', name: 'Kaspi.kz', price: `7${nb}936${nb}000${nb}₸`, qty: `400${nb}шт.`, delta: `↓${nb}347${nb}925${nb}₸${nb}(−4,2${nb}%)`, neg: true },
           { logo: 'imgVisualContainer1.png', name: 'Halyk Bank', price: `6${nb}240${nb}000${nb}₸`, qty: `20${nb}000${nb}шт.`, delta: `↑${nb}693${nb}333${nb}₸${nb}(+12,5${nb}%)` },
-          { logo: { src: 'pf/logo-zholbarys.png', cls: 'pad' }, name: 'Жолбарыс', price: `50${nb}000${nb}$`, qty: `5${nb}лотов`, delta: `↑${nb}749${nb}$${nb}(+1,52${nb}%)` },
+          { logo: 'zholbarys-electro.png', name: 'Жолбарыс', price: `50${nb}000${nb}$`, qty: `5${nb}лотов`, delta: `↑${nb}749${nb}$${nb}(+1,52${nb}%)` },
           { extra: true, logo: { src: 'logos/kap.svg', bg: '#fff', pad: 3, crop: 'kap' }, name: 'Казатомпром', price: `2${nb}145${nb}000${nb}₸`, qty: `100${nb}шт.`, delta: `↑${nb}136${nb}573${nb}₸${nb}(+6,8${nb}%)` },
           { extra: true, logo: { src: 'logos/airastana.png', bg: '#fff', pad: 3, crop: 'aira' }, name: 'Air Astana', price: `1${nb}320${nb}000${nb}₸`, qty: `1${nb}000${nb}шт.`, delta: `↑${nb}30${nb}938${nb}₸${nb}(+2,4${nb}%)` },
         ],
@@ -123,7 +123,7 @@ window.DATA = {
         ] },
       { amount: `25${nb}367${nb}369${nb}₸`, delta: `↓${nb}121${nb}509${nb}₸${nb}(0,48${nb}%)`, kind: 'negative', name: 'Площадка N1',
         items: [
-          { logo: { src: 'pf/logo-tesla.png', cls: 'zoom' }, name: 'Tesla Inc.', price: `13${nb}560${nb}$`, qty: `30${nb}шт.`, delta: `↓${nb}1${nb}259,67${nb}$${nb}(−8,5${nb}%)`, neg: true },
+          { logo: { src: 'logos/tesla.svg', bg: '#e31937', pad: 11 }, name: 'Tesla Inc.', price: `13${nb}560${nb}$`, qty: `30${nb}шт.`, delta: `↓${nb}1${nb}259,67${nb}$${nb}(−8,5${nb}%)`, neg: true },
           { logo: { src: 'pf/logo-microsoft.png' }, name: 'Microsoft', price: `10${nb}420${nb}$`, qty: `20${nb}шт.`, delta: `↑${nb}133,72${nb}$${nb}(+1,30${nb}%)` },
           { logo: { src: 'pf/logo-google.png' }, name: 'Alphabet', price: `7${nb}175${nb}$`, qty: `25${nb}шт.`, delta: `↑${nb}88,58${nb}$${nb}(+1,25${nb}%)` },
           { extra: true, logo: { src: 'logos/nvidia.svg', bg: '#fff', pad: 4, crop: 'nvidia' }, name: 'NVIDIA', price: `7${nb}520${nb}$`, qty: `40${nb}шт.`, delta: `↑${nb}646,14${nb}$${nb}(+9,4${nb}%)` },

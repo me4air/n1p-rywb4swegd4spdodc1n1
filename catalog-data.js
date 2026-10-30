@@ -6,7 +6,7 @@
   const L = {
     kaspi: 'imgVisualContainer.png', halyk: 'imgVisualContainer1.png',
     apple: { src: 'logos/apple.svg', bg: '#000', pad: 11, invert: true },
-    tesla: { src: 'pf/logo-tesla.png', cls: 'zoom' }, msft: { src: 'pf/logo-microsoft.png' }, google: { src: 'pf/logo-google.png' },
+    tesla: { src: 'logos/tesla.svg', bg: '#e31937', pad: 11 }, msft: { src: 'pf/logo-microsoft.png' }, google: { src: 'pf/logo-google.png' },
     nvidia: { src: 'logos/nvidia.svg', bg: '#fff', pad: 4, crop: 'nvidia' },
     kap: { src: 'logos/kap.svg', bg: '#fff', pad: 3, crop: 'kap' }, aira: { src: 'logos/airastana.png', bg: '#fff', pad: 3, crop: 'aira' },
     kcell: { src: 'logos/kcell.svg', bg: '#fff', pad: 3 }, coca: { src: 'logos/coca.svg', bg: '#fff', pad: 3 },
