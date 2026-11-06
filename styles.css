@@ -920,7 +920,7 @@ img[src$="imgMagnifierM.svg"], img[src$="note/info.svg"], .statusbar img { filte
 /* ---------- Вход (Figma 217:27140) ---------- */
 .login { position: absolute; z-index: 30; inset: 0; background: var(--bg-main); overflow: hidden; transition: opacity .3s ease; }
 .login.out { opacity: 0; pointer-events: none; }
-.lg-video { position: absolute; left: -1px; top: -104px; width: calc(100% + 3px); height: auto; aspect-ratio: 9 / 16; object-fit: cover; background: #000; }
+.lg-video { position: absolute; left: -1px; top: -104px; width: calc(100% + 3px); height: auto; aspect-ratio: 496 / 864; object-fit: cover; background: #000; }
 .lg-sb { position: absolute; z-index: 2; top: 0; left: 0; right: 0; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 32px; color: #fff; }
 .lg-sb .time { font: 600 14px/normal -apple-system, 'SF Pro Text', Roboto, sans-serif; letter-spacing: -.28px; }
 .lg-sheet { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; padding-top: 8px; background: var(--bg-main); border-radius: var(--r-l) var(--r-l) 0 0; transform: translateY(105%); transition: transform .45s cubic-bezier(.22,.8,.28,1); }
