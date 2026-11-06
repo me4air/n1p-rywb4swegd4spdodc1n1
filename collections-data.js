@@ -1,6 +1,6 @@
 // Подборки (Figma: Главная 95:10583 · Купить 98:15688, обновлено 2026-10-30).
 // Структура из макета: «Взлеты и падения дня» (2 карточки по 3 бумаги + «Показать все»), «Подборки ценных бумаг» (промо-баннеры),
-// «Лидеры по ROI» по секторам, «Портфели великих». Состав, цены и тексты подборок — демо (ADDED); котировки совпадают с каталогом.
+// «Лидеры по ROI» по секторам, «Портфели по отраслям». Состав, цены и тексты подборок — демо (ADDED); котировки совпадают с каталогом.
 (function () {
   const nb = ' ';
   const t = (txt, bg, color) => ({ txt, bg: bg || '#e8f2fe', color: color || '#2563eb' }); // плитка с тикером
@@ -38,8 +38,13 @@
     // «Компании и дивиденды» — только в «Купить»; бумаги и котировки берутся из каталога
     dividends: (() => {
       const by = (tk) => window.CATALOG.items.find((i) => i.ticker === tk);
-      const card = (title, tickers, all) => ({ title, all, items: tickers.map((tk) => { const i = by(tk); return S(i.name, i.ticker, i.price, i.delta, i.logo, i.neg); }) });
-      return [card('Выплаты в этом месяце', ['KSPI', 'HSBK', 'AAPL'], 8), card('Высокие дивиденды', ['KZAP', 'KO', 'JNJ'], 10), card('Стабильные дивиденды', ['PG', 'MSFT', 'KCEL'], 12)];
+      // синяя подпись — причина, по которой бумага попала в подборку (Figma 158:16502; даты и цифры — демо, ADDED)
+      const card = (title, rows, all) => ({ title, all, items: rows.map(([tk, note]) => { const i = by(tk); return { ...S(i.name, i.ticker, i.price, i.delta, i.logo, i.neg), note }; }) });
+      return [
+        card('Выплаты в этом месяце', [['KSPI', 'Купите до 8 ноября'], ['HSBK', 'Купите до 12 ноября'], ['AAPL', 'Купите до 18 ноября']], 8),
+        card('Высокие дивиденды', [['KZAP', 'Доходность 11,2 % годовых'], ['KO', 'Доходность 3,1 % годовых'], ['JNJ', 'Доходность 3,0 % годовых']], 10),
+        card('Стабильные дивиденды', [['PG', 'Платит и растёт 68 лет подряд'], ['MSFT', 'Платит и растёт 20 лет подряд'], ['KCEL', 'Платит 12 лет подряд']], 12),
+      ];
     })(),
 
     // «Подборки ценных бумаг» — промо-баннеры. art — иллюстрация (SVG-глиф на цветном фоне), logos — стопка логотипов (до 5); если бумаг больше 5, в кружке «N+» (count − 5), иначе кружка нет
@@ -134,11 +139,16 @@
       ],
     },
 
-    // «Портфели великих» — только в «Купить» (имена и фото в макете вымышленные «Нейро…»)
-    greats: [
-      { name: 'Уоррен Нейробаффет', count: 25, sub: 'Инвестиции в IT, технологии и аграрный сектор', bg: 'linear-gradient(113.35deg,#1b0a9a 30.39%,#222 104.95%)', img: 'coll/great1.png', imgStyle: 'height:143.01%;left:39.05%;top:-6.68%;width:76.27%' },
-      { name: 'Джордж Нейросорос', count: 25, sub: 'Инвестиции в финансы, энергетику и золото', bg: 'linear-gradient(113.35deg,#0a9a6f 30.39%,#00574a 104.95%)', img: 'coll/great2.png', imgStyle: 'height:147.78%;left:33.94%;top:-8.31%;width:78.82%' },
-      { name: 'Рэй Нейродалио', count: 18, sub: 'Всепогодный портфель: акции, облигации и золото', bg: 'linear-gradient(113.35deg,#9a4a0a 30.39%,#222 104.95%)', img: 'coll/great3.png', imgStyle: 'height:147.78%;left:33.94%;top:-3.5%;width:78.82%' },
+    // «Портфели по отраслям» (Figma 158:17492, обновлено 2026-11-06): картинки — из макета (222:28306/28316/28317); состав и тексты — демо (ADDED)
+    sectors: [
+      { name: 'Энергетика', count: 25, sub: 'Лидирующие компании в сфере энергетики', bg: 'linear-gradient(113.35deg,#1b0a9a 30.39%,#222 104.95%)', img: 'coll/sec-energy.png', imgStyle: 'height:133.7%;left:42.74%;top:-11.06%;width:71.31%' },
+      { name: 'Технологии', count: 25, sub: 'Лидирующие компании в сфере технологий', bg: 'linear-gradient(113.35deg,#9a4a0a 30.39%,#222 104.95%)', img: 'coll/sec-tech.png', imgStyle: 'height:133.7%;left:42.74%;top:-11.06%;width:71.31%' },
+      { name: 'Медицина', count: 18, sub: 'Лидирующие компании в сфере медицины', bg: 'linear-gradient(113.35deg,#0a9a6f 30.39%,#00574a 104.95%)', img: 'coll/sec-med.png', imgStyle: 'height:133.7%;left:42.74%;top:-11.06%;width:71.31%' },
     ],
   };
+  // «Лидеры по ROI»: синяя подпись «ROI N %» (Figma 158:16685; значения — демо, ADDED)
+  const ROI = { CEG: 34, NEE: 29, CCJ: 27, VST: 24, DUK: 22, SO: 21, OKLO: 19, XOM: 31, CVX: 28, BP: 26, SHEL: 24, COP: 23, OXY: 22, SLB: 21,
+    NVDA: 76, MSFT: 38, AAPL: 35, AVGO: 33, ORCL: 30, ADBE: 29, CRM: 27, KSPI: 58, HSBK: 31, JPM: 24, V: 23, MA: 22, GS: 21, 'BRK.B': 20,
+    KO: 40, PG: 32, WMT: 21, PEP: 20, MCD: 19, COST: 18, NKE: 17, LLY: 59, JNJ: 27, PFE: 22, ABBV: 21, MRK: 20, ABT: 19, NVO: 18 };
+  window.COLL.roi.sectors.forEach((sec) => [...sec.items, ...sec.extra].forEach((i) => { if (ROI[i.ticker]) i.note = `ROI${nb}${ROI[i.ticker]}${nb}%`; }));
 })();

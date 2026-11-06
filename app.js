@@ -96,6 +96,7 @@
       <div class="data">
         <div class="row"><span class="name">${i.name}</span><span class="price">${i.price}</span></div>
         <div class="row"><span class="ticker">${i.ticker}</span><span class="delta${i.neg ? ' neg' : ''}">${i.delta}</span></div>
+        ${i.note ? `<div class="why">${i.note}</div>` : ''}
       </div>
     </button>`;
 
@@ -314,8 +315,7 @@
       <h2 class="note-h2">${O.condTitle}</h2>
       <div class="cond-grid" id="cond-grid">
         <div class="cond-r1">
-          <div class="cond y"><div><div class="lb"><span>${O.yield.label}</span></div><b>${O.yield.value}</b></div><div class="fl"><img src="${A}note/flag-us.png" alt=""><span>${O.yield.hint}</span></div></div>
-          <div class="cond hintable" data-hint="risk"><div><div class="lb"><span>${O.risk.label}</span>${info}</div><b>${O.risk.value}</b></div><div class="bars">${[1, 2, 3].map((n) => `<i class="${n <= O.risk.level ? 'on' : ''}"></i>`).join('')}</div></div>
+          <div class="cond y"><div class="lb"><span>${O.yield.label}</span></div><div class="yv"><img src="${A}note/flag-us.png" alt=""><span><b>${O.yield.value}</b> ${O.yield.hint}</span></div></div>
         </div>
         <div class="cond-r">${cc(O.cond[0])}${cc(O.cond[1])}</div>
         <div class="cond-r">${cc(O.cond[2])}${cc(O.cond[3])}</div>
@@ -701,8 +701,8 @@
     ${themesHtml()}
     ${header('Компании и дивиденды', false)}
     ${collRow(CL.dividends)}
-    ${header('Портфели великих', false)}
-    <div class="hscroll greats">${CL.greats.map(greatCard).join('')}</div>
+    ${header('Портфели по отраслям', false)}
+    <div class="hscroll greats">${CL.sectors.map(greatCard).join('')}</div>
     ${header('Просмотрено недавно', false)}
     <div class="section-pad"><div class="card recent"><div class="list">${recentItems.map((i) => `
       <button class="instr tap">${logoHtml(i.logo)}

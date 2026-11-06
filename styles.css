@@ -343,6 +343,7 @@ button { font: inherit; color: inherit; background: none; border: 0; text-align:
 .instr .price { font: 400 16px/24px Roboto; white-space: nowrap; }
 .instr .ticker { font: 400 14px/20px Roboto; color: var(--content-secondary); }
 .instr .delta { font: 400 14px/20px Roboto; color: var(--content-success); white-space: nowrap; }
+.instr .why { font: 400 12px/16px Roboto; color: var(--content-action); }
 .instr .delta.neg { color: var(--content-negative); }
 
 /* Advisory */
@@ -582,8 +583,8 @@ button { font: inherit; color: inherit; background: none; border: 0; text-align:
 .note-card.etf p { margin: 0; padding: 0 16px; font: 400 14px/20px Roboto; }
 .note-card.prm { padding: 8px 0; display: flex; flex-direction: column; gap: 8px; }
 .prm-row { display: flex; gap: 16px; align-items: flex-start; padding: 8px 16px; font-size: 16px; line-height: 24px; }
-.prm-row span { flex: none; width: 164px; font-weight: 400; }
-.prm-row b { flex: 1; min-width: 0; text-align: right; font-weight: 600; }
+.prm-row span { flex: 0 1 164px; min-width: 0; font-weight: 400; }
+.prm-row b { flex: 1 0 auto; text-align: right; font-weight: 600; }
 .note-doc { display: flex; gap: 16px; align-items: center; width: 100%; padding: 16px; background: var(--bg-main); border-radius: var(--r-l); text-align: left; }
 .note-doc img { width: 24px; height: 24px; flex: none; display: block; }
 .note-doc b { flex: 1; min-width: 0; font: 600 16px/24px Roboto; }
@@ -717,7 +718,12 @@ button { font: inherit; color: inherit; background: none; border: 0; text-align:
 .cond-grid { position: relative; padding: 8px 16px; display: flex; flex-direction: column; gap: 8px; }
 .cond-r1, .cond-r { display: flex; gap: 8px; align-items: stretch; }
 .cond { flex: 1 1 0; min-width: 0; background: var(--bg-main); border-radius: var(--r-l); padding: 12px 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 0; text-align: left; }
-.cond.y { flex: none; width: 139px; justify-content: flex-start; gap: 2px; }
+.cond.y { justify-content: flex-start; gap: 2px; }
+.cond.y > .lb { flex-direction: row; justify-content: flex-start; }
+.cond .yv { display: flex; align-items: center; gap: 4px; }
+.cond .yv img { width: 16px; height: 16px; flex: none; }
+.cond .yv span { font: 400 16px/24px Roboto; }
+.cond .yv b { display: inline; }
 .cond > div:first-child { display: flex; flex-direction: column; gap: 2px; }
 .cond .lb { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .cond .lb span { font: 400 14px/20px Roboto; color: var(--content-secondary); white-space: nowrap; }
