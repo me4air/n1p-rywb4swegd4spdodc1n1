@@ -951,3 +951,6 @@ img[src$="imgMagnifierM.svg"], img[src$="note/info.svg"], .statusbar img { filte
 .phone.login-on .snack { z-index: 40; }
 /* у видео внизу вотермарка KlingAI: нижние ~10 % кадра плавно уходят в чёрный фон */
 .lg-video { -webkit-mask-image: linear-gradient(to bottom, #000 84%, transparent 92%); mask-image: linear-gradient(to bottom, #000 84%, transparent 92%); }
+/* после перезагрузки сразу после входа (iPhone) — мягкое появление «Главной» */
+.phone.enter { animation: lgenter .35s ease; }
+@keyframes lgenter { from { opacity: 0; } }

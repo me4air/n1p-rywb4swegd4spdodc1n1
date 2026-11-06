@@ -1033,6 +1033,9 @@
     if (lgDone) return;
     if (!lgDigits) { lgIn.classList.add('err'); return; } // пусто — состояние ошибки
     lgDone = true; lgInput.blur(); lgVideo.pause();
+    // iPhone/Safari: после чёрного экрана входа верхняя и нижняя полосы браузера «залипают» на чёрном до перезагрузки,
+    // поэтому на телефоне после входа страница перезагружается сразу на «Главную» (вход не показывается: в адресе есть #/home)
+    if (lgTouch) { try { sessionStorage.setItem('n1p-after-login', '1'); } catch (e) {} location.hash = '#/home'; location.reload(); return; }
     go('home'); loginEl.classList.add('out'); phoneEl.classList.remove('login-on'); syncTheme(); setBars(getComputedStyle(document.documentElement).getPropertyValue('--bg-primary').trim(), true); setTimeout(syncTheme, 350);
     setTimeout(() => { loginEl.hidden = true; }, 320);
   }
@@ -1052,6 +1055,7 @@
   lgVideo.addEventListener('playing', () => setTimeout(lgReveal, 350));
   setTimeout(lgReveal, 2200); // если видео не загрузилось или автоплей запрещён — шторка всё равно выезжает
   lgVideo.play && lgVideo.play().catch(() => lgReveal());
+  try { if (sessionStorage.getItem('n1p-after-login')) { sessionStorage.removeItem('n1p-after-login'); phoneEl.classList.add('enter'); setTimeout(() => phoneEl.classList.remove('enter'), 500); } } catch (e) {}
   const lgNeeded = !location.hash || location.hash === '#/' || location.hash === '#/login';
   if (lgNeeded) { loginEl.hidden = false; phoneEl.classList.add('login-on'); } else { lgDone = true; }
 
