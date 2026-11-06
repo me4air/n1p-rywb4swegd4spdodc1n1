@@ -307,36 +307,37 @@
   const accHtml = ([q, a]) => `<div class="note-card note-acc"><button class="na-head tap" data-acc aria-expanded="false"><b>${q}</b><i></i></button><div class="na-body"><p>${a}</p></div></div>`;
   const noteTabHtml = {
     overview: () => {
-      const O = NT.overview;
-      const cell = (c) => `<div class="note-pad"><div class="note-fact"><img src="${A}note/${c.icon}.svg" alt=""><div><b>${c.title}</b><span>${c.hint}</span></div></div></div>`;
+      const O = NT.overview, info = '<i class="ci"></i>';
+      const cc = (c) => `<div class="cond${c.hint ? ' hintable' : ''}"${c.hint ? ` data-hint="${c.hint}"` : ''}><div><div class="lb"><span>${c.label}</span>${c.hint ? info : ''}</div><b>${c.value}</b></div></div>`;
       return `
       <div class="note-pad note-media">${O.media.map((m) => `<button class="note-fact tap" data-media><img src="${A}note/${m.icon}.svg" alt=""><div><b>${m.title}</b><span>${m.hint}</span></div></button>`).join('')}</div>
       <h2 class="note-h2">${O.condTitle}</h2>
-      <div class="note-pad note-kpi">
-        <div class="kpi y"><span>${O.yield.label}</span><b>${O.yield.value}</b><div class="fl"><img src="${A}note/flag-us.png" alt=""><span>${O.yield.hint}</span></div></div>
-        <div class="kpi"><div><span>${O.risk.label}</span><b>${O.risk.value}</b></div><div class="bars">${[1, 2, 3, 4, 5].map((n) => `<i class="${n <= O.risk.level ? 'on' : ''}"></i>`).join('')}</div></div>
+      <div class="cond-grid" id="cond-grid">
+        <div class="cond-r1">
+          <div class="cond y"><div><div class="lb"><span>${O.yield.label}</span></div><b>${O.yield.value}</b></div><div class="fl"><img src="${A}note/flag-us.png" alt=""><span>${O.yield.hint}</span></div></div>
+          <div class="cond hintable" data-hint="risk"><div><div class="lb"><span>${O.risk.label}</span>${info}</div><b>${O.risk.value}</b></div><div class="bars">${[1, 2, 3].map((n) => `<i class="${n <= O.risk.level ? 'on' : ''}"></i>`).join('')}</div></div>
+        </div>
+        <div class="cond-r">${cc(O.cond[0])}${cc(O.cond[1])}</div>
+        <div class="cond-r">${cc(O.cond[2])}${cc(O.cond[3])}</div>
       </div>
-      ${O.facts.map(cell).join('')}
+      <h2 class="note-h2">${O.ideaTitle}</h2>
+      <div class="note-pad"><div class="note-card idea-s">
+        <h3>${O.idea.title.join('<br>')}</h3>
+        <p>${O.idea.text}</p>
+        <button class="txt-btn tap" data-nt-go="idea">${O.idea.button}</button>
+      </div></div>
       <h2 class="note-h2">${O.howTitle}</h2>
-      <div class="note-pad"><div class="note-card how">${O.how.map(([t, h]) => `<div class="how-row"><b>${t}</b><span>${h}</span></div>`).join('')}<p class="how-note">${O.howNote[0]}<a data-doc>${O.howNote[1]}</a></p></div></div>
-      <h2 class="note-h2">${O.scenTitle}</h2>
-      <div class="note-hs hscroll">${O.scen.map((s) => scenCard(s, O)).join('')}</div>
-      <p class="scen-note">${O.scenNote}</p>`;
+      <div class="note-pad"><div class="note-card how">${O.how.map(([t, h]) => `<div class="how-row"><b>${t}</b><span>${h}</span></div>`).join('')}<p class="how-note">${O.howNote[0]}<a data-doc>${O.howNote[1]}</a></p></div></div>`;
     },
     idea: () => `
       <div class="note-pad"><div class="note-author"><img src="${A}note/author-n1.png" alt=""><div><span>${NT.author.label}</span><b>${NT.author.name}</b></div></div></div>
-      <div class="note-pad"><div class="note-card">
-        <h3>${NT.lead.title.join('<br>')}</h3>
-        <div class="nc-text">${NT.lead.body.map((t) => `<p>${t}</p>`).join('')}</div>
-      </div></div>
+      <h2 class="note-h2">${NT.moreTitle}</h2>
+      <div class="note-pad"><div class="note-card"><div class="nc-text nc-long">${NT.more.map(([k, t], n) => (k === 'h' ? (n ? `<h4>${t}</h4>` : `<h3>${t}</h3>`) : `<p>${t}</p>`)).join('')}</div></div></div>
+      <h2 class="note-h2">${NT.argsTitle}</h2>
       <div class="note-hs hscroll">
         <div class="note-card pc"><h3 class="ok">${NT.pros.title}</h3>${noteList('check', NT.pros.items)}</div>
         <div class="note-card pc"><h3>${NT.cons.title}</h3>${noteList('info-s', NT.cons.items)}</div>
       </div>
-      <div class="note-pad"><div class="note-card note-more">
-        <button class="nm-head tap" data-note-more aria-expanded="false"><h3>${NT.moreTitle}</h3><i></i></button>
-        <div class="nm-body"><div>${NT.more.map(([k, t]) => (k === 'h' ? `<h4>${t}</h4>` : `<p>${t}</p>`)).join('')}</div></div>
-      </div></div>
       <div class="note-pad"><div class="note-msg"><img src="${A}note/info.svg" alt=""><p>${NT.disclaimer}</p></div></div>`,
     terms: () => `
       <h2 class="note-h2">${NT.paramsTitle}</h2>
@@ -347,14 +348,22 @@
       <div class="note-pad accs">${NT.faq.map(accHtml).join('')}</div>
       <h2 class="note-h2">${NT.risksTitle}</h2>
       <div class="note-pad accs">${NT.risks.map(accHtml).join('')}</div>`,
-    assets: () => `
+    assets: () => {
+      const O = NT.overview;
+      return `
+      <h2 class="note-h2">${NT.payTitle}</h2>
+      <div class="note-pad"><div class="note-card pay">${NT.pay.map(([l, dt, v], n) => `<div class="pay-row${n === NT.pay.length - 1 ? ' last' : ''}${n ? '' : ' first'}"><div class="pay-tr"><i></i></div><div class="pay-c"><span>${l}</span><div><b>${dt}</b><em>${v}</em></div></div></div>`).join('')}</div></div>
+      <h2 class="note-h2">${O.scenTitle}</h2>
+      <div class="note-hs hscroll">${O.scen.map((s) => scenCard(s, O)).join('')}</div>
+      <p class="scen-note">${O.scenNote}</p>
+      <h2 class="note-h2">${NT.compTitle}</h2>
       <div class="note-pad"><div class="note-card sum">
         <div class="sum-tbl">
           <div class="sum-row hd">${NT.summaryHead.map((h) => `<span>${h}</span>`).join('')}</div>
           ${NT.etf.map((e) => `<div class="sum-row"><span class="tk"><img src="${A}note/${e.logo}" alt="">${e.t}</span><span>${e.share}</span><span class="pr">${e.price}</span></div>`).join('')}
         </div>
       </div></div>
-      <h2 class="note-h2">${NT.compTitle}</h2>
+      <h2 class="note-h2">${NT.descTitle}</h2>
       ${NT.etf.map((e) => `<div class="note-pad"><div class="note-card etf">
         <button class="instr tap"><img class="logo" src="${A}note/${e.logo}" alt="">
           <div class="data">
@@ -362,9 +371,37 @@
             <div class="row"><span class="ticker">${e.t}</span><span class="delta">${e.delta}</span></div>
           </div></button>
         <p>${e.text}</p>
-      </div></div>`).join('')}`,
+      </div></div>`).join('')}
+      `;
+    },
   };
+  // Подсказка по условиям (Figma 169:19350): тап по карточке открывает, любой следующий тап закрывает
+  function closeHint() {
+    const h = document.getElementById('note-hint');
+    if (h) h.remove();
+    document.querySelectorAll('.cond.open').forEach((c) => c.classList.remove('open'));
+  }
+  function openHint(card) {
+    closeHint();
+    const grid = $('cond-grid'), ic = card.querySelector('.ci');
+    const h = document.createElement('div');
+    h.id = 'note-hint'; h.className = 'note-hint';
+    h.innerHTML = `<div class="nh-box">${NT.overview.hints[card.dataset.hint]}</div><svg class="nh-tail" width="16" height="10" viewBox="0 0 16 10" aria-hidden="true"><path d="M0 0H16L8 10Z" fill="rgba(18,18,18,.8)"/></svg>`;
+    grid.appendChild(h);
+    h.style.top = (card.offsetTop - h.offsetHeight - 4) + 'px';
+    h.querySelector('.nh-tail').style.left = (ic.offsetLeft - 16) + 'px';
+    card.classList.add('open');
+    const sc = $('note-scroll'), k = sc.getBoundingClientRect().height / sc.clientHeight; // экран может быть масштабирован
+    const need = (h.getBoundingClientRect().top - sc.getBoundingClientRect().top - sc.querySelector('.note-chips').getBoundingClientRect().height) / k;
+    if (need < 8) sc.scrollBy({ top: need - 8, behavior: 'smooth' }); // балун не должен прятаться под вкладками
+  }
+  document.addEventListener('click', (e) => {
+    if (document.getElementById('note-hint')) { closeHint(); e.stopPropagation(); e.preventDefault(); return; }
+    const hc = e.target.closest('.cond[data-hint]');
+    if (hc) { e.stopPropagation(); openHint(hc); }
+  }, true);
   function renderNote() {
+    closeHint();
     const chips = $('note-chips'), sl = chips.scrollLeft;
     chips.innerHTML = NT.tabs.map(([id, t]) => `<button class="note-chip tap${id === noteTab ? ' selected' : ''}" data-nt="${id}">${t}</button>`).join('');
     chips.scrollLeft = sl;
@@ -375,6 +412,227 @@
     $('note-body').querySelectorAll('.hscroll').forEach(enableDrag);
   }
   renderNote();
+
+
+  // ---------- Страница инструмента (Figma 179:15855) ----------
+  const ST = window.STOCK, NBS = ' ';
+  const stockFav = {}; let stockId = 'AAPL', stockTab = 'overview', stockRange = 'day', stockFrom = 'home';
+  const stockMore = {};
+  const stNum = (n, d) => { const [i, f] = Math.abs(n).toFixed(d).split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g, NBS) + (f ? ',' + f : ''); };
+  const stMoney = (n, it) => `${stNum(n, it.decimals)}${NBS}${it.cur}`;
+  // детерминированный «рынок»: случайное блуждание с памятью и всплесками волатильности, привязанное к началу и концу периода
+  const stRng = (str) => { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } let a = h >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; };
+  const ST_GEN = { // видимых точек, точек «до окна», размах шума в % от цены
+    day: [84, 24, 2.4], week: [65, 18, 3.4], month: [66, 18, 6], m6: [130, 36, 12], year: [150, 42, 22], all: [140, 40, 55],
+  };
+  function stSeries(it, range, S, E) {
+    const [n, pre, amp] = ST_GEN[range], N = n + pre, r = stRng(it.ticker + range);
+    let prev = 0, burst = .5; const w = [0];
+    for (let i = 1; i < N; i++) { burst = .92 * burst + .08 * r() * 2; prev = .3 * prev + (r() + r() + r() - 1.5) * (.5 + 1.5 * burst); w.push(w[i - 1] + prev); }
+    const p0 = pre, L = N - 1 - p0, noise = [];
+    for (let i = 0; i < N; i++) noise.push(i >= p0 ? w[i] - w[p0] - (w[N - 1] - w[p0]) * (i - p0) / L : w[i] - w[p0]);
+    const vis = noise.slice(p0), rg = Math.max(...vis) - Math.min(...vis) || 1, k = E * amp / 100 / rg;
+    return noise.map((nz, i) => i >= p0 ? S + (E - S) * (i - p0) / L + nz * k : S + nz * k);
+  }
+  let stV = [], stY = (y) => y;
+  const ST_XW = 985, ST_TOP = 12, ST_BOT = 214; // верхний/нижний пунктир; средний — текущая цена
+  function stDraw() { // масштаб подбирается под видимое окно: линия всегда упирается в верхний и нижний пунктир
+    const box = $('st-chart'); if (!box || !stV.length) return;
+    const N = stV.length, f0 = box.scrollLeft / box.scrollWidth, f1 = (box.scrollLeft + box.clientWidth) / box.scrollWidth;
+    const i0 = Math.max(0, Math.floor(f0 * 1000 / ST_XW * (N - 1)) - 1), i1 = Math.min(N - 1, Math.ceil(f1 * 1000 / ST_XW * (N - 1)) + 1);
+    const win = stV.slice(i0, i1 + 1), mn = Math.min(...win), mx = Math.max(...win) || 1, sp = (mx - mn) || 1;
+    const Y = (y) => ST_BOT - (y - mn) / sp * (ST_BOT - ST_TOP), E = stV[N - 1]; stY = Y;
+    $('st-path').setAttribute('d', 'M' + stV.map((y, i) => `${(i / (N - 1) * ST_XW).toFixed(1)} ${Y(y).toFixed(1)}`).join('L'));
+    $('st-dot').style.top = Y(E).toFixed(1) + 'px';
+    $('st-gm').style.top = Math.min(ST_BOT, Math.max(ST_TOP, Y(E))).toFixed(1) + 'px';
+  }
+
+  // ---- зажатие на графике: полоска и точка под пальцем, цена и дата на тот момент; отпустил — всё возвращается ----
+  const ST_MON = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+  const ST_PPD = { week: 13, month: 3 }; // точек за торговую сессию (09:00–16:00)
+  function stWhen(i) { // «сегодня» — 5 ноября 2026, закрытие в 16:00
+    const rg = stockRange, N = stV.length, [n, pre] = ST_GEN[rg], d = new Date(2026, 10, 5, 16, 0), pad = (x) => String(x).padStart(2, '0');
+    const back = (k) => { while (k > 0) { d.setDate(d.getDate() - 1); if (d.getDay() % 6) k--; } };
+    const at = (h) => { d.setHours(Math.floor(h), Math.round((h % 1) * 60)); };
+    let time = true;
+    if (rg === 'day') {
+      if (i < pre) { back(1); at(14 + i * 2 / (pre - 1)); } else at(9 + (i - pre) * 7 / (n - 1));
+    } else if (ST_PPD[rg]) {
+      const ppd = ST_PPD[rg], m = N - 1 - i; back(Math.floor(m / ppd)); at(9 + (ppd - 1 - m % ppd) * 7 / (ppd - 1));
+    } else {
+      time = false; const days = { m6: 182, year: 365, all: 365 * 7 }[rg] * N / n;
+      d.setTime(d.getTime() - (N - 1 - i) / (N - 1) * days * 864e5);
+    }
+    return `${d.getDate()}${NBS}${ST_MON[d.getMonth()]}${NBS}${d.getFullYear() === 2026 && time ? '' : d.getFullYear() + NBS}${time ? `в${NBS}${pad(d.getHours())}:${pad(d.getMinutes())}` : ''}`.replace(/ $/, '');
+  }
+  function stScrub(clientX) {
+    const box = $('st-chart'), it = ST.items[stockId], N = stV.length, rc = box.getBoundingClientRect();
+    const fr = Math.min(1, Math.max(0, (clientX - rc.left) / rc.width));
+    const f = (box.scrollLeft + fr * box.clientWidth) / box.scrollWidth * 1000 / ST_XW;
+    const i = Math.min(N - 1, Math.max(0, Math.round(f * (N - 1)))), y = stV[i];
+    const cur = $('st-cur'), dot = $('st-cdot'), left = (i / (N - 1) * ST_XW / 10) + '%';
+    cur.style.left = dot.style.left = left; dot.style.top = stY(y) + 'px'; cur.style.display = dot.style.display = 'block';
+    $('st-p').textContent = stMoney(y, it); $('st-when').textContent = stWhen(i);
+    $('st-p').closest('.st-ph').classList.add('scrub');
+  }
+  function stScrubEnd() {
+    const c = $('st-cur'); if (!c) return;
+    c.style.display = $('st-cdot').style.display = 'none';
+    $('st-p').textContent = stMoney(ST.items[stockId].price, ST.items[stockId]);
+    $('st-p').closest('.st-ph').classList.remove('scrub');
+  }
+  function stChartPointer(el) {
+    if (el._sp) return; el._sp = true;
+    let timer = 0, on = false, down = false, sx = 0, sl = 0, kind = '';
+    const end = () => { clearTimeout(timer); if (on) stScrubEnd(); on = down = false; el.classList.remove('dragging'); };
+    el.addEventListener('pointerdown', (e) => {
+      down = true; on = false; sx = e.clientX; sl = el.scrollLeft; kind = e.pointerType;
+      clearTimeout(timer); timer = setTimeout(() => { on = true; stScrub(sx); }, 220);
+    });
+    window.addEventListener('pointermove', (e) => {
+      if (!down) return;
+      if (on) { stScrub(e.clientX); return; }
+      if (Math.abs(e.clientX - sx) > (kind === 'mouse' ? 4 : 8)) { clearTimeout(timer); if (kind === 'mouse') { el.classList.add('dragging'); el.scrollLeft = sl - (e.clientX - sx); } }
+    });
+    window.addEventListener('pointerup', end); window.addEventListener('pointercancel', end);
+    el.addEventListener('touchmove', (e) => { if (on) e.preventDefault(); }, { passive: false });
+    el.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+  function stChartHtml(it) {
+    const rg = stockRange, day = rg === 'day';
+    const S = day ? it.price - it.dayChange : it.price / (1 + ST.rangePct[rg] / 100), E = it.price;
+    stV = stSeries(it, rg, S, E);
+    const ax = ST.axisPre[rg].map((t) => `<p class="pre">${t}</p>`).join('') + ST.axis[rg].map((t) => `<p>${t}</p>`).join('');
+    const d = day ? it.dayChange : E - S, pct = day ? it.dayPct : (E / S - 1) * 100;
+    return { delta: `↑${NBS}${stNum(d, it.decimals)}${NBS}${it.cur}${NBS}(+${stNum(pct, 1)}${NBS}%)`, label: ST.rangeLabel[rg],
+      html: `<div class="st-in" style="width:${((ST_GEN[rg][0] + ST_GEN[rg][1]) / ST_GEN[rg][0] * 100).toFixed(1)}%"><div class="st-plot">
+        <svg viewBox="0 0 1000 230" preserveAspectRatio="none" aria-hidden="true"><path id="st-path" d="" fill="none" stroke="#161519" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>
+        <b class="st-dot" id="st-dot" style="left:98.5%"></b><i class="st-cur" id="st-cur"></i><b class="st-cdot" id="st-cdot"></b></div><div class="st-axis">${ax}</div></div>` };
+  }
+  function renderStockChart(keepScroll) {
+    const it = ST.items[stockId], c = stChartHtml(it), box = $('st-chart');
+    $('st-delta').textContent = c.delta; $('st-dlabel').textContent = c.label;
+    stScrubEnd(); box.innerHTML = c.html;
+    box.scrollLeft = box.scrollWidth; stDraw(); box.onscroll = () => requestAnimationFrame(stDraw); // открывается «сегодня» — конец графика, историю можно подтянуть влево
+    document.querySelectorAll('.st-range').forEach((b) => b.classList.toggle('selected', b.dataset.rg === stockRange));
+  }
+  const stNewsCard = (n) => newsCardHtml(n).replace(' data-news=""', '');
+  function stockOverview(it) {
+    const rows = it.metrics.map(([a, b]) => `<div class="st-row"><span>${a}</span><b>${b}</b></div>`).join('');
+    const news = it.news.concat(stockMore[stockId] ? it.moreNews : []);
+    return `
+      <div class="st-card st-price">
+        <div class="st-ph"><div class="st-p" id="st-p">${stMoney(it.price, it)}</div>
+          <div class="st-pm"><span class="tag success" id="st-delta"></span><span id="st-dlabel"></span><span id="st-when"></span></div></div>
+        <div class="st-cw"><i class="gl" style="top:12px"></i><i class="gl" id="st-gm"></i><i class="gl" style="top:214px"></i><div class="st-chart" id="st-chart"></div></div>
+        <div class="st-ranges"><div>${ST.ranges.map(([id, t]) => `<button class="st-range tap" data-rg="${id}">${t}</button>`).join('')}</div></div>
+      </div>
+      <div class="st-pos"><div class="card"><div><span>${ST.portfolioTitle[0]}</span><b>${it.qty}${NBS}шт.</b></div><div class="r"><span>${ST.portfolioTitle[1]}</span><b class="n">${stMoney(it.qty * it.price, it)}</b></div></div></div>
+      <button class="header tap" data-st-go="about"><h2>${ST.aboutTitle}</h2><img src="${A}imgChevronForwardM.svg" alt=""></button>
+      <div class="section-pad"><div class="card st-about">
+        <div class="st-ah"><div class="instr st-logo">${logoHtml(it.logo)}</div><b>${it.title}</b></div>
+        <p class="st-desc">${it.about}</p>
+        <button class="txt-btn st-read tap" data-st-go="about">${ST.readMore}</button>
+        <h3 class="st-h3">${ST.metricsTitle}</h3>${rows}
+        <div class="st-allm"><button class="more-btn tap" data-st-go="about">${ST.allMetrics}</button></div>
+      </div></div>
+      <button class="header tap" data-st-go="divs"><h2>${ST.divTitle}</h2><img src="${A}imgChevronForwardM.svg" alt=""></button>
+      <div class="section-pad"><div class="card st-div">
+        <div class="st-dc"><div><span>${ST.divLabels[0]}</span><b>${it.div.next}</b></div><div class="r"><span>${ST.divLabels[1]}</span><b>${it.div.yield}</b></div></div>
+        <div class="st-row"><span>${ST.divLabels[2]}</span><b>${it.div.buyBy}</b></div>
+        <div class="st-row"><span>${ST.divLabels[3]}</span><b>${it.div.amount}</b></div>
+        <div class="st-allm"><button class="more-btn tap" data-st-go="divs">${ST.divMore}</button></div>
+      </div></div>
+      <div class="header"><h2>${ST.newsTitle}</h2></div>
+      <div class="news-cards" id="st-news">${news.map(stNewsCard).join('')}</div>
+      ${stockMore[stockId] ? '' : `<div class="st-more"><button class="ghost-btn tap" id="st-more">${ST.loadMore}</button></div>`}`;
+  }
+  function stockAbout(it) {
+    const L = ST.aboutLabels, row = ([a, b]) => `<div class="st-row"><span>${a}</span><b>${b}</b></div>`;
+    const row2 = ([a, d, v]) => `<div class="st-row st-row2"><span>${a}<small>${d}</small></span><b>${v}</b></div>`;
+    const block = (title, rows) => `<div class="header"><h2>${title}</h2></div><div class="section-pad"><div class="card st-about">${rows}</div></div>`;
+    return `<div class="section-pad"><div class="card st-about">
+        <div class="st-ah"><div class="instr st-logo">${logoHtml(it.logo)}</div><b>${it.title}</b></div>
+        <p class="st-desc full">${it.aboutFull}</p>
+        ${row([L[0], it.country])}${row([L[1], it.industry])}
+      </div></div>
+      ${block(ST.metricsTitle, it.metricsFull.map(row).join(''))}
+      ${block(ST.valTitle, it.valuation.map(row2).join(''))}
+      ${block(ST.profTitle, it.profit.map(row2).join(''))}`;
+  }
+  function stockDivs(it) {
+    const hist = ([d, y, p, amt]) => `<div class="dv-cell"><div class="dv-hd"><b>${d}</b><span>${y}</span></div><div class="dv-hs"><span>${p}</span><span>${amt} ${ST.divsPer}</span></div></div>`;
+    return `<div class="header"><h2>${ST.divsNextTitle}</h2></div>
+      <div class="section-pad"><div class="card dv-card">
+        <div class="dv-cell"><div class="dv-r1"><span>${ST.divsBuyBy}</span><span>${ST.divsYield} ${it.div.yield}</span></div><div class="dv-r2"><b>${it.divBuyBy}</b><span>${it.div.amount} ${ST.divsPer}</span></div></div>
+        <div class="dv-note"><i></i><p>${ST.divsNote}</p></div>
+      </div></div>
+      <div class="header"><h2>${ST.divsHistTitle}</h2></div>
+      <div class="section-pad"><div class="card dv-card">${it.divHist.map(hist).join('')}</div></div>`;
+  }
+  function stockHist(it) {
+    const m = (n) => `${stNum(n, it.decimals)}${NBS}${it.cur}`, sign = (n) => (n < 0 ? '-' : '+') + m(n);
+    const op = ([k, amt, x, p]) => {
+      const det = k === 'div' ? `${m(x)} ${ST.histPer}` : k === 'tax' ? `${ST.histOf} ${m(x)}` : `${x}${NBS}${ST.histPcs}/${m(p)}`;
+      return `<div class="hs-cell"><div class="instr st-logo">${logoHtml(it.logo)}</div><div class="hs-d"><div class="hs-1"><b>${it.title}</b><span class="${amt < 0 ? 'neg' : 'pos'}">${sign(amt)}</span></div><div class="hs-2"><span>${ST.histKinds[k]}</span><span>${det}</span></div></div></div>`;
+    };
+    return it.hist.map(([d, ops]) => `<div class="header"><h2>${d}</h2></div><div class="section-pad"><div class="card hs-card">${ops.map(op).join('')}</div></div>`).join('');
+  }
+  // ---------- Стакан: демо-данные, детерминированные по тикеру ----------
+  const BK_N = 25; // уровней цен в каждую сторону
+  function stockBook(it) {
+    const r = stRng(it.ticker + 'book'), t = it.tick, L = ST.bookLabels, vol = [];
+    for (let i = 0; i < BK_N * 2; i++) vol.push(Math.max(1, Math.round(r() * r() * 600)));
+    const asks = vol.slice(0, BK_N), bids = vol.slice(BK_N), max = Math.max(...vol);
+    const row = (cls, price, v) => `<div class="bk-row ${cls}"><i style="width:${Math.max(3, v / max * 55).toFixed(1)}%"></i><span class="bk-b">${cls === 'bid' ? stNum(v, 0) : ''}</span><span class="bk-p">${stNum(price, it.decimals)}</span><span class="bk-s">${cls === 'ask' ? stNum(v, 0) : ''}</span></div>`;
+    let h = '';
+    for (let i = BK_N; i >= 1; i--) h += row('ask', it.price + t * i, asks[i - 1]);
+    h += '<div class="bk-mid" id="bk-mid"></div>'; // граница покупки и продажи
+    for (let i = 1; i <= BK_N; i++) h += row('bid', it.price - t * i, bids[i - 1]);
+    return `<div class="bk"><div class="bk-head"><span>${L[0]}</span><span>${L[1]} ${it.cur}</span><span>${L[2]}</span></div><div class="bk-list" id="bk-list">${h}</div></div>`;
+  }
+  function stBookCenter() { // граница покупки и продажи — по центру видимой области
+    const l = $('bk-list'), m = $('bk-mid'); if (!l || !m) return;
+    l.scrollTop = m.offsetTop + m.offsetHeight / 2 - l.clientHeight / 2;
+  }
+  function renderStock() {
+    const it = ST.items[stockId], chips = $('st-chips');
+    chips.innerHTML = ST.tabs.map(([id, t]) => `<button class="st-chip tap${id === stockTab ? ' selected' : ''}" data-st="${id}">${t}</button>`).join('');
+    const sel = chips.querySelector('.selected'); // выбранная вкладка всегда в зоне видимости
+    if (sel.offsetLeft + sel.offsetWidth + 16 > chips.scrollLeft + chips.clientWidth) chips.scrollLeft = sel.offsetLeft + sel.offsetWidth + 16 - chips.clientWidth;
+    else if (sel.offsetLeft - 16 < chips.scrollLeft) chips.scrollLeft = Math.max(0, sel.offsetLeft - 16);
+    $('st-fav').classList.toggle('on', !!stockFav[stockId]); $('st-fav').setAttribute('aria-pressed', !!stockFav[stockId]);
+    $('st-title').textContent = it.navTitle; $('st-sub').textContent = it.ticker;
+    $('screen-stock').classList.toggle('book', stockTab === 'book'); $('screen-stock').classList.toggle('wbar', stockTab === 'book' || stockTab === 'divs' || stockTab === 'hist');
+    $('st-body').innerHTML = stockTab === 'overview' ? stockOverview(it) : stockTab === 'book' ? stockBook(it) : stockTab === 'about' ? stockAbout(it) : stockTab === 'divs' ? stockDivs(it) : stockTab === 'hist' ? stockHist(it) : `<div class="st-empty">${ST.empty}</div>`;
+    if (stockTab === 'book') { stBookCenter(); requestAnimationFrame(stBookCenter); }
+    if (stockTab === 'overview') { renderStockChart(); stChartPointer($('st-chart')); }
+  }
+  $('screen-stock').innerHTML = `
+    <div class="note-nav st-nav"><button class="back tap" data-back="stock" aria-label="Назад"><i></i></button><span class="st-t"><b id="st-title"></b><span id="st-sub"></span></span><span class="sp st-r"><button class="st-fav tap" id="st-fav" aria-label="В избранное" aria-pressed="false"></button></span></div>
+    <div class="note-scroll" id="st-scroll">
+      <div class="note-chips" id="st-chips"></div>
+      <div id="st-body"></div>
+    </div>
+    <div class="st-trade" id="st-trade"><button class="sell tap" data-st-trade>${ST.sell}</button><button class="buy tap" data-st-trade>${ST.buy}</button></div>`;
+  const openStock = (id) => { stockId = id; stockTab = 'overview'; stockRange = 'day'; renderStock(); go('stock'); $('st-scroll').scrollTop = 0; const ch = $('st-chart'); ch.scrollLeft = ch.scrollWidth; stDraw(); };
+  // тап по бумаге в любом списке: Apple и Kaspi.kz открывают страницу, остальные — предупреждение
+  document.addEventListener('click', (e) => {
+    const row = e.target.closest('.instr'); if (!row || row.closest('#screen-note, #screen-stock') || row.classList.contains('st-logo')) return;
+    const nm = row.querySelector('.name'), id = nm && ST.byName[nm.textContent.trim()];
+    if (id) openStock(id); else showSnack(ST.warnSnack);
+  });
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#screen-stock') === null) return;
+    const sg = e.target.closest('[data-st-go]'), sc = $('st-scroll');
+    if (sg) { stockTab = sg.dataset.stGo; renderStock(); sc.scrollTop = 0; return; }
+    const tb = e.target.closest('.st-chip');
+    if (tb) { stockTab = tb.dataset.st; renderStock(); sc.scrollTop = 0; return; } // вкладка всегда прилипла сверху — скролл ровно до неё
+    const rb = e.target.closest('.st-range'); if (rb) { stockRange = rb.dataset.rg; renderStockChart(); return; }
+    if (e.target.closest('#st-more')) { stockMore[stockId] = true; const mb = e.target.closest('.st-more'); $('st-news').insertAdjacentHTML('beforeend', ST.items[stockId].moreNews.map(stNewsCard).join('')); mb.remove(); return; }
+    if (e.target.closest('#st-fav')) { stockFav[stockId] = !stockFav[stockId]; $('st-fav').classList.toggle('on', stockFav[stockId]); $('st-fav').setAttribute('aria-pressed', stockFav[stockId]); showSnack(`${ST.items[stockId].navTitle} ${stockFav[stockId] ? ST.favOn : ST.favOff}`, 'success'); return; }
+    if (e.target.closest('[data-st-trade]')) showSnack(ST.tradeSnack);
+  });
 
   // ---------- Снекбар (Figma 104:27393) ----------
   const snackEl = $('snack');
@@ -389,13 +647,13 @@
       <button class="sn-act tap" id="sn-act">Понятно</button>
     </div>`;
   function hideSnack() { snackT.forEach(clearTimeout); snackT.forEach(clearInterval); snackT = []; snackEl.classList.remove('open'); setTimeout(() => { if (!snackEl.classList.contains('open')) snackEl.hidden = true; }, 240); }
-  function showSnack(text) {
+  function showSnack(text, tone) {
     snackEl.querySelector('.sn-text').textContent = text || window.ARTICLE.snackText;
     snackT.forEach(clearTimeout); snackT.forEach(clearInterval); snackT = [];
     const nav = document.querySelector('.bottomnav');
-    const buyBar = $('screen-note').hidden ? null : $('note-buy'); // на странице ноты снекбар встаёт над кнопкой «Купить»
+    const buyBar = !$('screen-note').hidden ? $('note-buy') : !$('screen-stock').hidden ? $('st-trade') : null; // на странице ноты снекбар встаёт над кнопкой «Купить»
     snackEl.style.bottom = ((buyBar ? buyBar.offsetHeight : nav && nav.offsetParent ? nav.offsetHeight : 0) + 8) + 'px';
-    const arc = snackEl.querySelector('.arc'); arc.style.transition = 'none'; arc.style.strokeDashoffset = '0';
+    const arc = snackEl.querySelector('.arc'); snackEl.classList.toggle('ok', tone === 'success'); arc.setAttribute('stroke', tone === 'success' ? '#008831' : '#db3434'); arc.style.transition = 'none'; arc.style.strokeDashoffset = '0';
     snackLeft = 5; $('sn-num').textContent = snackLeft;
     snackEl.hidden = false; void snackEl.offsetWidth; snackEl.classList.add('open');
     requestAnimationFrame(() => requestAnimationFrame(() => { arc.style.transition = 'stroke-dashoffset 5s linear'; arc.style.strokeDashoffset = SN_LEN.toFixed(2); }));
@@ -652,26 +910,28 @@
   $('tabs').innerHTML = tabs.map(([id, t, i]) =>
     `<button class="tab tap" ${id ? `data-go="${id}"` : ''}><i style="--ic:url(${A}${i}.svg)"></i><span>${t}</span></button>`).join('');
 
-  const screens = ['home', 'portfolio', 'buy', 'catalog', 'news', 'search', 'article', 'note'];
+  const screens = ['home', 'portfolio', 'buy', 'catalog', 'news', 'search', 'article', 'note', 'stock'];
   let articleFrom = 'home';
   let noteFrom = 'home';
+  let stockPrev = 'home';
   let searchFrom = 'home';
   let current = null;
   const show = (name) => {
     if (!screens.includes(name)) name = 'home';
     if (name === current) return;
     const prev = current; current = name;
-    if (name === 'search' && prev && prev !== 'search' && prev !== 'note') searchFrom = prev; // поиск — поверх экрана-источника; возврат с ноты его не меняет
+    if (name === 'search' && prev && prev !== 'search' && prev !== 'note' && prev !== 'stock') searchFrom = prev; // поиск — поверх экрана-источника; возврат с ноты его не меняет
     if (name === 'article' && prev && prev !== 'article' && prev !== 'note') articleFrom = prev; // возврат с ноты не меняет источник статьи
     if (name === 'note' && prev && prev !== 'note') noteFrom = prev;
+    if (name === 'stock' && prev && prev !== 'stock') stockFrom = prev;
     hideSnack(); $('art-promo').classList.remove('show');
     screens.forEach((s) => { $('screen-' + s).hidden = s !== name; });
     document.querySelectorAll('.tab').forEach((el) => el.classList.toggle('active', el.dataset.go === name));
-    document.querySelector('.phone').classList.toggle('no-tabs', name === 'news' || name === 'catalog' || name === 'article' || name === 'note');
+    document.querySelector('.phone').classList.toggle('no-tabs', name === 'news' || name === 'catalog' || name === 'article' || name === 'note' || name === 'stock');
     document.querySelector('.phone').classList.toggle('cat-on', name === 'catalog');
     document.querySelector('.phone').classList.toggle('search-on', name === 'search');
     document.querySelector('.phone').classList.toggle('art-on', name === 'article');
-    if (name === 'search') { if (prev !== 'note') { $('srch-q').value = ''; renderSearch(); $('screen-search').scrollTop = 0; $('srch-q').focus({ preventScroll: true }); } }
+    if (name === 'search') { if (prev !== 'note' && prev !== 'stock') { $('srch-q').value = ''; renderSearch(); $('screen-search').scrollTop = 0; $('srch-q').focus({ preventScroll: true }); } }
     else if (prev === 'search') $('srch-q').blur();
     if (name === 'news') fitLeads();
     updatePfNav(); // на экране новостей таб-бара нет (макет: только home indicator)
@@ -695,10 +955,13 @@
     if (e.target.closest('[data-back="article"]')) go(articleFrom);
     if (e.target.closest('[data-note]')) { noteTab = 'overview'; renderNote(); go('note'); $('note-scroll').scrollTop = 0; }
     else if (e.target.closest('[data-snack]')) showSnack(window.NOTE.bannerSnack);
-    if (e.target.closest('[data-back="note"]')) go(noteFrom);
+    if (e.target.closest('[data-back="note"]')) { closeHint(); go(noteFrom); }
+    if (e.target.closest('[data-back="stock"]')) go(stockFrom);
+    const ng = e.target.closest('[data-nt-go]');
+    if (ng) { noteTab = ng.dataset.ntGo; renderNote(); const sc = $('note-scroll'); sc.scrollTop = Math.min(sc.scrollTop, sc.querySelector('.note-hero').offsetHeight); return; }
     const nc = e.target.closest('.note-chip');
     if (nc) {
-      const top = $('note-scroll').scrollTop, stuck = $('note-scroll').querySelector('.note-chips').offsetTop; noteTab = nc.dataset.nt; renderNote(); $('note-scroll').scrollTop = Math.min(top, stuck);
+      const top = $('note-scroll').scrollTop, stuck = $('note-scroll').querySelector('.note-hero').offsetHeight; noteTab = nc.dataset.nt; renderNote(); $('note-scroll').scrollTop = Math.min(top, stuck); // вкладка уже прилипла — подскроллить ровно до момента фиксации, иначе не трогать
     }
     if (e.target.closest('[data-doc]')) showSnack(window.NOTE.docSnack);
     if (e.target.closest('[data-promo]')) { // тап по снекбару: прокрутить к идее и убрать его

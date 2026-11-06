@@ -519,8 +519,8 @@ button { font: inherit; color: inherit; background: none; border: 0; text-align:
 .note-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .note-chips { position: sticky; top: 0; z-index: 3; display: flex; gap: 8px; align-items: center; height: 52px; padding: 8px 16px; background: var(--bg-primary); overflow-x: auto; scrollbar-width: none; }
 .note-chips::-webkit-scrollbar { display: none; }
-.note-chip { flex: none; padding: 8px 12px; border-radius: 32px; background: var(--bg-main); font: 400 14px/20px Roboto; color: var(--content-primary); white-space: nowrap; }
-.note-chip.selected { background: var(--bg-action-base, var(--content-action)); color: #fff; }
+.note-chip, .st-chip { flex: none; padding: 8px 12px; border-radius: 32px; background: var(--bg-main); font: 400 14px/20px Roboto; color: var(--content-primary); white-space: nowrap; }
+.note-chip.selected, .st-chip.selected { background: var(--bg-action-base, var(--content-action)); color: #fff; }
 .note-pad { padding: 8px 16px; }
 .note-card { background: var(--bg-main); border-radius: var(--r-l); padding: 8px 0 16px; }
 .note-card h3 { margin: 0; padding: 8px 16px; font: 600 18px/28px Roboto; }
@@ -696,3 +696,158 @@ button { font: inherit; color: inherit; background: none; border: 0; text-align:
 .instr .logo.tile::after, .instr .logo.sq::after, .pcard .pl .tile::after { content: ''; position: absolute; inset: 0; background: url(assets/squircle-ring.svg) center / 100% 100% no-repeat; pointer-events: none; }
 
 .p-txt b { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Страница ноты: условия, идея продукта, график выплат (Figma 130:33652 · 168:18669 · 165:18415 · 168:18830) */
+.cond-grid { position: relative; padding: 8px 16px; display: flex; flex-direction: column; gap: 8px; }
+.cond-r1, .cond-r { display: flex; gap: 8px; align-items: stretch; }
+.cond { flex: 1 1 0; min-width: 0; background: var(--bg-main); border-radius: var(--r-l); padding: 12px 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 0; text-align: left; }
+.cond.y { flex: none; width: 139px; justify-content: flex-start; gap: 2px; }
+.cond > div:first-child { display: flex; flex-direction: column; gap: 2px; }
+.cond .lb { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cond .lb span { font: 400 14px/20px Roboto; color: var(--content-secondary); white-space: nowrap; }
+.cond .lb .ci { width: 16px; height: 16px; flex: none; background: var(--content-secondary); -webkit-mask: url(assets/note/info-circle.svg) center / contain no-repeat; mask: url(assets/note/info-circle.svg) center / contain no-repeat; }
+.cond.open .lb .ci { background: var(--content-action); }
+.cond b { display: block; font: 600 16px/24px Roboto; }
+.cond .fl { display: flex; gap: 8px; align-items: center; }
+.cond .fl img { width: 16px; height: 16px; flex: none; }
+.cond .fl span { font: 400 12px/16px Roboto; color: var(--content-secondary); white-space: nowrap; }
+.cond .bars { display: flex; gap: 4px; padding: 4px 0; width: 168px; max-width: 100%; }
+.cond .bars i { flex: 1; height: 4px; border-radius: 2px; background: var(--bg-secondary); }
+.cond .bars i.on { background: var(--content-success); }
+.note-card.idea-s { padding: 8px 0; }
+.idea-s h3 { margin: 0; padding: 8px 16px; font: 600 18px/28px Roboto; }
+.idea-s p { margin: 0; padding: 0 16px; font: 400 16px/24px Roboto; }
+.txt-btn { display: block; margin: 8px 16px; padding: 0; text-align: left; font: 600 14px/20px Roboto; color: var(--content-action); }
+.nc-long { padding-top: 8px; padding-bottom: 8px; }
+.nc-long h3 { padding: 8px 0; margin: 0; font: 600 18px/28px Roboto; }
+.nc-long h4 { margin: 0 0 8px; font: 600 16px/24px Roboto; }
+.note-card.pay { padding: 0; }
+.pay-row { display: flex; gap: 12px; padding: 0 16px; }
+.pay-tr { flex: none; width: 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.pay-tr::before { content: ''; flex: none; width: 2px; height: 16px; background: #1dbe67; }
+.pay-row.first .pay-tr::before { background: transparent; }
+.pay-tr i { flex: none; width: 8px; height: 8px; box-sizing: content-box; border-radius: 50%; background: #008831; box-shadow: 0 0 0 1px var(--stroke-primary); }
+.pay-tr::after { content: ''; flex: 1; width: 2px; background: #1dbe67; }
+.pay-row.last .pay-tr i { background: var(--content-action); }
+.pay-row.last .pay-tr::after { background: transparent; }
+.pay-c { flex: 1; min-width: 0; padding: 16px 0; }
+.pay-c > span { display: block; font: 400 13px/16px Roboto; color: var(--content-secondary); }
+.pay-c > div { display: flex; justify-content: space-between; gap: 16px; margin-top: 2px; }
+.pay-c b { font: 600 16px/24px Roboto; }
+.pay-c em { font: 400 16px/24px Roboto; font-style: normal; text-align: right; white-space: nowrap; }
+
+.note-hint { position: absolute; left: 0; right: 0; z-index: 6; padding: 0 16px; pointer-events: none; animation: nh-in .15s ease-out; }
+@keyframes nh-in { from { opacity: 0; transform: translateY(4px); } }
+.nh-box { padding: 16px; border-radius: var(--r-l); background: rgba(18,18,18,.8); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); color: #fff; font: 400 16px/24px Roboto; }
+.nh-tail { display: block; margin-left: 0; position: relative; }
+
+.note-media .note-fact span { margin-top: 2px; }
+
+/* ---------- Страница инструмента (Figma 179:15855) ---------- */
+.st-nav .st-t { flex: none; display: flex; flex-direction: column; align-items: center; }
+.st-nav .st-t b { font: 600 16px/24px Roboto; }
+.st-nav .st-t span { font: 400 12px/16px Roboto; color: var(--content-secondary); }
+.st-card { background: var(--bg-main); border-radius: var(--r-l); margin: 8px 0; overflow: hidden; }
+.st-ph { padding: 12px 16px 8px; }
+.st-p { font: 600 32px/40px Roboto; }
+.st-pm { display: flex; gap: 8px; align-items: flex-start; margin-top: 2px; }
+.st-pm > span:last-child { font: 400 14px/20px Roboto; color: var(--content-secondary); }
+.st-chart { overflow-x: auto; scrollbar-width: none; cursor: grab; }
+.st-chart::-webkit-scrollbar { display: none; }
+.st-plot { position: relative; height: 230px; }
+.st-cw { position: relative; }
+.st-cw .gl { position: absolute; z-index: 1; left: 0; right: 0; height: 0; border-top: 1px dashed #c4c4ca; pointer-events: none; }
+.st-chart { position: relative; z-index: 2; }
+.st-plot svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.st-dot { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: #161519; box-shadow: 0 0 0 4px rgba(22,21,25,.16); }
+.st-axis { display: flex; justify-content: space-between; padding: 8px; font: 400 12px/16px Roboto; color: var(--content-secondary); }
+.st-axis p { margin: 0; } .st-axis .pre { color: var(--content-tertiary); }
+.st-ranges { padding: 8px 16px; }
+.st-ranges > div { display: flex; padding: 8px; border-radius: var(--r-3xl); background: var(--bg-primary); }
+.st-range { display: flex; align-items: center; justify-content: center; text-align: center; flex: 1; padding: 4px 12px; border-radius: var(--r-3xl); font: 600 12px/16px Roboto; color: var(--content-primary); white-space: nowrap; }
+.st-range.selected { background: var(--bg-action-base, var(--content-action)); color: #fff; }
+.st-pos { padding: 8px 16px; }
+.st-pos .card { display: flex; gap: 16px; padding: 16px; }
+.st-pos .card > div { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.st-pos .card .r { text-align: right; }
+.st-pos span { font: 400 13px/16px Roboto; color: var(--content-secondary); }
+.st-pos b { font: 600 16px/24px Roboto; } .st-pos b.n { font-weight: 400; }
+.st-about { padding: 8px 0; }
+.st-ah { display: flex; align-items: center; gap: 16px; padding: 8px 16px; }
+.st-ah b { font: 600 18px/28px Roboto; }
+.st-logo { width: 48px; padding: 0; flex: none; }
+.st-desc { margin: 0; padding: 0 16px; font: 400 16px/24px Roboto; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.st-read { margin: 0; padding: 8px 16px; }
+.st-h3 { margin: 0; padding: 8px 16px; font: 600 18px/28px Roboto; }
+.st-row { display: flex; gap: 16px; padding: 8px 16px; font: 400 16px/24px Roboto; }
+.st-row span { flex: 1; } .st-row b { flex: 1; text-align: right; font-weight: 600; }
+.st-allm { padding: 8px 16px; }
+.st-more { padding: 8px 16px; }
+.ghost-btn { display: block; width: 100%; height: 40px; border-radius: var(--r-xs); color: var(--content-action); font: 600 14px/20px Roboto; text-align: center; }
+.st-empty { padding: 48px 32px; text-align: center; font: 400 14px/20px Roboto; color: var(--content-secondary); }
+.st-trade { flex: none; display: flex; gap: 8px; padding: 12px 16px calc(12px + var(--home)); background: var(--bg-primary); }
+.st-trade button { display: flex; align-items: center; justify-content: center; text-align: center; flex: 1; height: 56px; border-radius: var(--r-m); color: #fff; font: 600 16px/20px Roboto; }
+.st-trade .sell { background: #121212; } .st-trade .buy { background: var(--bg-success); }
+.st-div { padding: 8px 0; }
+.st-dc { display: flex; gap: 16px; padding: 16px; }
+.st-dc > div { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.st-dc .r { text-align: right; }
+.st-dc span { font: 400 13px/16px Roboto; color: var(--content-secondary); }
+.st-dc b { font: 600 16px/24px Roboto; } .st-dc .r b { font-weight: 400; }
+.st-chart { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.st-cur { display: none; position: absolute; top: 12px; height: 202px; width: 0; border-left: 1px dashed #2563eb; pointer-events: none; }
+.st-cdot { display: none; position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: #2563eb; box-shadow: 0 0 0 2px #f3f4f5; pointer-events: none; }
+#st-when { display: none; font: 400 14px/24px Roboto; color: var(--content-secondary); }
+.st-ph.scrub .st-pm > span:not(#st-when) { display: none; }
+.st-ph.scrub #st-when { display: block; }
+
+/* вкладка «Стакан» (Figma 191:17604): шапка колонок фиксирована, скроллится только список */
+#screen-stock.book #st-scroll { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
+#screen-stock.book .note-chips { flex: none; }
+#screen-stock.book #st-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+#screen-stock.wbar .st-trade { background: var(--bg-main); }
+.bk { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; background: var(--bg-main); border-radius: 16px 16px 0 0; margin-top: 6px; padding-top: 8px; }
+.bk-head, .bk-row { display: grid; grid-template-columns: 1fr 1fr 1fr; column-gap: 21px; align-items: center; padding: 0 16px; }
+.bk-head { flex: none; height: 40px; margin-bottom: 8px; font: 600 16px/24px Roboto; }
+.bk-head span:nth-child(1) { color: var(--content-success); text-align: left; }
+.bk-head span:nth-child(2) { text-align: center; }
+.bk-head span:nth-child(3) { color: #db3434; text-align: right; }
+.bk-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; overscroll-behavior: contain; position: relative; }
+.bk-list::-webkit-scrollbar { display: none; }
+.bk-list { padding-bottom: 24px; }
+.bk-row { position: relative; height: 40px; margin-bottom: 8px; font: 400 16px/24px Roboto; }
+.bk-row > span { position: relative; }
+.bk-row i { position: absolute; top: 0; bottom: 0; }
+.bk-row.ask i { right: 0; background: #fff0f0; border-radius: 8px 0 0 8px; }
+.bk-row.bid i { left: 0; background: var(--bg-success-light); border-radius: 0 8px 8px 0; }
+.bk-b { color: var(--content-success); text-align: left; } .bk-p { text-align: center; } .bk-s { color: #db3434; text-align: right; }
+.bk-mid { height: 0; }
+.st-desc.full { display: block; -webkit-line-clamp: unset; overflow: visible; padding-bottom: 8px; }
+.st-row2 small { display: block; font: 400 14px/20px Roboto; color: var(--content-secondary); }
+.st-row2 span { align-self: center; }
+/* вкладка «Дивиденды» (Figma 205:18933) */
+.dv-card { padding: 0 16px 16px; }
+.dv-cell { padding: 16px 0 0; }
+.dv-r1, .dv-r2, .dv-hd, .dv-hs { display: flex; justify-content: space-between; gap: 16px; }
+.dv-r1 { font: 400 13px/16px Roboto; color: var(--content-secondary); }
+.dv-r2 { font: 400 16px/24px Roboto; } .dv-r2 b { font-weight: 600; }
+.dv-hd { font: 400 16px/24px Roboto; } .dv-hd b { font-weight: 600; }
+.dv-hs { margin-top: 2px; font: 400 14px/20px Roboto; color: var(--content-secondary); }
+.dv-r2 span:last-child, .dv-hs span:last-child, .dv-hd span { white-space: nowrap; text-align: right; }
+.dv-note { display: flex; gap: 8px; align-items: flex-start; margin-top: 16px; padding: 12px 16px; background: var(--bg-action-light); border-radius: var(--r-l); }
+.dv-note i { flex: none; width: 16px; height: 20px; background: url(assets/note/info-circle-fill.svg) center / 16px no-repeat; }
+.dv-note p { margin: 0; font: 400 12px/16px Roboto; }
+/* вкладка «История» (Figma 205:19367) */
+.hs-card { padding: 0 16px; }
+.hs-cell { display: flex; gap: 16px; padding: 16px 0; }
+.hs-d { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.hs-1, .hs-2 { display: flex; justify-content: space-between; gap: 16px; }
+.hs-1 { font: 400 16px/24px Roboto; } .hs-1 b { font-weight: 600; }
+.hs-1 .pos { color: var(--content-success); } .hs-1 .neg { color: #db3434; }
+.hs-2 { font: 400 14px/20px Roboto; color: var(--content-secondary); }
+.hs-1 span, .hs-2 span { white-space: nowrap; }
+.hs-cell .logo.tile, .st-ah .logo.tile { padding: 13px !important; }
+.st-nav .st-r { display: flex; justify-content: flex-end; }
+.st-fav { width: 24px; height: 24px; background: url(assets/stock/bookmark-line.svg) center / 24px no-repeat; }
+.st-fav.on { background-image: url(assets/stock/bookmark-fill.svg); }
+.snack.ok .sn-act { color: var(--content-success); }
