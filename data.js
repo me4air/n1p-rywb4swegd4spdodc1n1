@@ -29,15 +29,15 @@ window.DATA = {
   ],
 
   news: { // DESIGN
-    hero: { id: 'diesel', src: 'Kapital.kz', time: '2 ч. назад', title: 'Цены на дизельное топливо продолжают расти', tag: 'Главное', img: 'imgFrame1321316070.png' },
+    hero: { id: 'power', src: 'Финансовый вестник', time: '3 ч. назад', title: 'Рост ИИ даёт электроэнергетике большой потенциал роста', tag: 'Главное', img: 'news/power.jpg' },
     lead: [
-      ['t', 'Акции нефтяной компании BP '], ['b', '[BP]'], ['t', ' продолжают расти на фоне увеличения добычи. Exxon '],
-      ['b', '[XOM]'], ['t', ' и Chevron '], ['b', '[CVX]'], ['t', ', также частично укр...'],
+      ['t', 'Рост числа дата-центров и вычислительных нагрузок для ИИ требует всё больше электроэнергии. Инвесторы обращают внимание на уран '], ['b', '[URA]'], ['t', ', действующую генерацию '],
+      ['b', '[XLE]'], ['t', ' и электросети '], ['b', '[XLU]'], ['t', ', сектор...'],
     ],
-    leadTags: [['success', `BP ↑${nb}1,54${nb}%`], ['success', `XOM ↑${nb}22,01${nb}%`], ['negative', `CVX ↓${nb}0,54${nb}%`]],
+    leadTags: [['success', `URA ↑${nb}4,11${nb}%`], ['success', `XLU ↑${nb}0,82${nb}%`]],
     items: [
-      { id: 'power', src: 'Финансовый вестник', time: '3 ч. назад', title: 'Рост ИИ даёт электроэнергетике большой потенциал роста',
-        tags: [['success', `URA ↑${nb}4,11${nb}%`], ['success', `XLU ↑${nb}0,82${nb}%`]], img: 'news/power-thumb.jpg' },
+      { id: 'diesel', src: 'Kapital.kz', time: '2 ч. назад', title: 'Цены на дизельное топливо продолжают расти',
+        tags: [['success', `BP ↑${nb}1,54${nb}%`], ['success', `XOM ↑${nb}22,01${nb}%`], ['negative', `CVX ↓${nb}0,54${nb}%`]], img: 'news/hero-refinery.png' },
       { src: 'N1broker', time: 'Вчера', title: 'N1broker запустил продажу нового структурного продукта',
         tags: [['info', `ZLBRS · 10,5%${nb}годовых`]], img: 'zholbarys-electro.png' },
     ],
