@@ -58,8 +58,8 @@ window.DATA = {
   collections: [ // CHANGED: реальные тикеры, демо-котировки; подборки 2–4 ADDED (в макете 2-я — копия 1-й)
     { title: 'Лидеры роста за сегодня', items: [
       { logo: 'imgVisualContainer.png',  name: 'Kaspi.kz',   ticker: 'KSPI', price: `19${nb}840${nb}₸`, delta: `↑${nb}598${nb}₸${nb}(+3,1${nb}%)` },
-      { logo: 'imgVisualContainer1.png', name: 'Halyk Bank', ticker: 'HSBK', price: `312${nb}₸`,       delta: `↑${nb}9${nb}₸${nb}(+3,0${nb}%)` },
       { logo: { src: 'logos/apple.svg', bg: '#000', pad: 11, invert: true }, name: 'Apple', ticker: 'AAPL', price: `262${nb}$`, delta: `↑${nb}5,6${nb}$${nb}(+2,2${nb}%)` },
+      { logo: { src: 'logos/nvidia.svg', bg: '#fff', pad: 4, crop: 'nvidia' }, name: 'NVIDIA', ticker: 'NVDA', price: `188${nb}$`, delta: `↑${nb}3,5${nb}$${nb}(+1,9${nb}%)` },
     ]},
     { title: 'Популярное у клиентов N1broker', items: [
       { logo: { src: 'logos/nvidia.svg', bg: '#fff', pad: 4, crop: 'nvidia' }, name: 'NVIDIA', ticker: 'NVDA', price: `188${nb}$`, delta: `↑${nb}3,5${nb}$${nb}(+1,9${nb}%)` },
@@ -112,7 +112,7 @@ window.DATA = {
       { amount: `52${nb}632${nb}808${nb}₸`, delta: `↑${nb}902${nb}202${nb}₸${nb}(1,74${nb}%)`, kind: 'success', name: 'Площадка ITS',
         items: [
           { logo: 'imgVisualContainer.png', name: 'Kaspi.kz', price: `7${nb}936${nb}000${nb}₸`, qty: `400${nb}шт.`, delta: `↓${nb}347${nb}925${nb}₸${nb}(−4,2${nb}%)`, neg: true },
-          { logo: 'imgVisualContainer1.png', name: 'Halyk Bank', price: `6${nb}240${nb}000${nb}₸`, qty: `20${nb}000${nb}шт.`, delta: `↑${nb}693${nb}333${nb}₸${nb}(+12,5${nb}%)` },
+          { logo: { src: 'logos/apple.svg', bg: '#000', pad: 11, invert: true }, name: 'Apple', price: `5${nb}240${nb}$`, qty: `20${nb}шт.`, delta: `↑${nb}157,56${nb}$${nb}(+3,1${nb}%)` },
           { logo: 'zholbarys-electro.png', name: 'Жолбарыс', price: `50${nb}000${nb}$`, qty: `5${nb}лотов`, delta: `↑${nb}749${nb}$${nb}(+1,52${nb}%)` },
           { extra: true, logo: { src: 'logos/kap.svg', bg: '#fff', pad: 3, crop: 'kap' }, name: 'Казатомпром', price: `2${nb}145${nb}000${nb}₸`, qty: `100${nb}шт.`, delta: `↑${nb}136${nb}573${nb}₸${nb}(+6,8${nb}%)` },
           { extra: true, logo: { src: 'logos/airastana.png', bg: '#fff', pad: 3, crop: 'aira' }, name: 'Air Astana', price: `1${nb}320${nb}000${nb}₸`, qty: `1${nb}000${nb}шт.`, delta: `↑${nb}30${nb}938${nb}₸${nb}(+2,4${nb}%)` },

@@ -29,8 +29,10 @@
       const pick = (sign) => window.CATALOG.items.filter((i) => pct(i) !== null && Math.sign(pct(i)) === sign)
         .sort((x, y) => sign * (pct(y) - pct(x))).slice(0, 10)
         .map((i) => S(i.name, i.ticker, i.price, i.delta, i.logo, sign < 0));
+      // по просьбе заказчика прототипа в «Лидерах роста» вместо Halyk Bank показываем Apple (на том же месте)
+      const swapHalyk = (list) => { const h = list.findIndex((x) => x.ticker === 'HSBK'), a = window.CATALOG.items.find((i) => i.ticker === 'AAPL'); if (h >= 0 && a) list[h] = S(a.name, a.ticker, a.price, a.delta, a.logo); return list.filter((x, k) => x.ticker !== 'AAPL' || k === h); };
       const split = (title, list) => ({ title, items: list.slice(0, 3), extra: list.slice(3) });
-      return [split('Лидеры роста за сегодня', pick(1)), split('Главные падения дня', pick(-1))];
+      return [split('Лидеры роста за сегодня', swapHalyk(pick(1))), split('Главные падения дня', pick(-1))];
     })(),
 
     // «Компании и дивиденды» — только в «Купить»; бумаги и котировки берутся из каталога
