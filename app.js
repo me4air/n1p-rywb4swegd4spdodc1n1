@@ -142,7 +142,7 @@
   const n = D.news;
   $('screen-home').innerHTML = `
     <div class="profile-bar">
-      <div class="profile-info">
+      <div class="profile-info tap" data-go="more" data-more="profile">
         <div class="avatar"><img src="${A}imgEllipse662.svg" alt=""><span>${D.user.initials}</span></div>
         <div><div class="profile-name">${D.user.name}</div><div class="profile-role">${D.user.status}</div></div>
       </div>
@@ -155,7 +155,7 @@
 
     <div class="section-pad">
       <button class="card balance tap" data-go="portfolio">
-        <div class="l1"><span>${D.balance.label}</span><span>${D.balance.venues}</span></div>
+        <div class="l1"><span>${D.balance.label}</span></div>
         <div class="l2"><span class="t-h-l">${D.balance.total}</span><img src="${A}imgChevronForwardM.svg" alt=""></div>
         <div class="l3"><span class="tag success">${D.balance.delta}</span><span class="t-b-s">${D.balance.period}</span></div>
       </button>
@@ -293,10 +293,10 @@
     const X = (m) => 42 + m / 24 * 225, Y = (p) => 50 + (100 - p) * 67 / 40, end = X(s.months);
     const path = (arr) => arr.map((p, i) => `${i ? 'L' : 'M'}${X(i * s.months / (arr.length - 1)).toFixed(1)} ${Y(p).toFixed(1)}`).join('');
     return `<svg viewBox="0 0 267 150" width="100%" role="img" aria-label="График базовых активов">
-      <line x1="3" y1="50" x2="267" y2="50" stroke="#8d8d93" stroke-dasharray="3 3"/><line x1="42" y1="0" x2="42" y2="117" stroke="#8d8d93" stroke-dasharray="3 3"/><line x1="${end}" y1="0" x2="${end}" y2="117" stroke="#8d8d93" stroke-dasharray="3 3"/>
-      <line x1="0" y1="117" x2="267" y2="117" stroke="#db3434" stroke-dasharray="5 3"/>
+      <line x1="3" y1="50" x2="267" y2="50" class="gr" stroke-dasharray="3 3"/><line x1="42" y1="0" x2="42" y2="117" class="gr" stroke-dasharray="3 3"/><line x1="${end}" y1="0" x2="${end}" y2="117" class="gr" stroke-dasharray="3 3"/>
+      <line x1="0" y1="117" x2="267" y2="117" class="gn" stroke-dasharray="5 3"/>
       <text x="48" y="8" class="ct">Дата покупки</text><text x="${end < 200 ? end + 6 : 162}" y="8" class="ct">Дата завершения</text><text x="0" y="70" class="ct">100 %</text><text x="0" y="134" class="ct r">Барьер 60 %</text>
-      ${s.lines.map((l, i) => `<path d="${path(l)}" fill="none" stroke="${O.legend[i][1]}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>`).join('')}</svg>`;
+      ${s.lines.map((l, i) => `<path d="${path(l)}" fill="none" style="stroke:${O.legend[i][1]}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>`).join('')}</svg>`;
   };
   const scenCard = (s, O) => `<div class="note-card pc scen">
     <div class="sc-h"><h3>${s.name}</h3><span class="tag-xs ${s.tag[0]}">${s.tag[1]}</span></div>
@@ -506,7 +506,7 @@
     const d = day ? it.dayChange : E - S, pct = day ? it.dayPct : (E / S - 1) * 100;
     return { delta: `↑${NBS}${stNum(d, it.decimals)}${NBS}${it.cur}${NBS}(+${stNum(pct, 1)}${NBS}%)`, label: ST.rangeLabel[rg],
       html: `<div class="st-in" style="width:${((ST_GEN[rg][0] + ST_GEN[rg][1]) / ST_GEN[rg][0] * 100).toFixed(1)}%"><div class="st-plot">
-        <svg viewBox="0 0 1000 230" preserveAspectRatio="none" aria-hidden="true"><path id="st-path" d="" fill="none" stroke="#161519" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>
+        <svg viewBox="0 0 1000 230" preserveAspectRatio="none" aria-hidden="true"><path id="st-path" d="" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>
         <b class="st-dot" id="st-dot" style="left:98.5%"></b><i class="st-cur" id="st-cur"></i><b class="st-cdot" id="st-cdot"></b></div><div class="st-axis">${ax}</div></div>` };
   }
   function renderStockChart(keepScroll) {
@@ -641,7 +641,7 @@
   snackEl.innerHTML = `
     <div class="sn-box">
       <div class="sn-body">
-        <span class="sn-timer"><svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="12" fill="#2a2a2a"/><circle class="arc" cx="12" cy="12" r="11" fill="none" stroke="#db3434" stroke-width="2" stroke-dasharray="${SN_LEN.toFixed(2)}" stroke-dashoffset="0" transform="rotate(-90 12 12)"/></svg><b id="sn-num">5</b></span>
+        <span class="sn-timer"><svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="12" class="tm-bg"/><circle class="arc" cx="12" cy="12" r="11" fill="none" stroke="#db3434" stroke-width="2" stroke-dasharray="${SN_LEN.toFixed(2)}" stroke-dashoffset="0" transform="rotate(-90 12 12)"/></svg><b id="sn-num">5</b></span>
         <span class="sn-text">${window.ARTICLE.snackText}</span>
       </div>
       <button class="sn-act tap" id="sn-act">Понятно</button>
@@ -653,7 +653,7 @@
     const nav = document.querySelector('.bottomnav');
     const buyBar = !$('screen-note').hidden ? $('note-buy') : !$('screen-stock').hidden ? $('st-trade') : null; // на странице ноты снекбар встаёт над кнопкой «Купить»
     snackEl.style.bottom = ((buyBar ? buyBar.offsetHeight : nav && nav.offsetParent ? nav.offsetHeight : 0) + 8) + 'px';
-    const arc = snackEl.querySelector('.arc'); snackEl.classList.toggle('ok', tone === 'success'); arc.setAttribute('stroke', tone === 'success' ? '#008831' : '#db3434'); arc.style.transition = 'none'; arc.style.strokeDashoffset = '0';
+    const arc = snackEl.querySelector('.arc'); snackEl.classList.toggle('ok', tone === 'success'); arc.style.stroke = tone === 'success' ? 'var(--content-success)' : 'var(--content-negative)'; arc.style.transition = 'none'; arc.style.strokeDashoffset = '0';
     snackLeft = 5; $('sn-num').textContent = snackLeft;
     snackEl.hidden = false; void snackEl.offsetWidth; snackEl.classList.add('open');
     requestAnimationFrame(() => requestAnimationFrame(() => { arc.style.transition = 'stroke-dashoffset 5s linear'; arc.style.strokeDashoffset = SN_LEN.toFixed(2); }));
@@ -674,7 +674,7 @@
         <span class="r2"><span>${p.min}</span><span>${p.period}</span></span>
         <span class="r3"><span class="th">${p.theme}</span><span>${p.rate}</span></span>
       </span></button></div>`;
-  const menuCell = (icon, label, go = '') => `<button class="card mcell tap" ${go ? `data-go="${go}"` : ''}><span class="vb"><img src="${A}buy/vbox.svg" alt=""><i style="--ic:url(${A}buy/${icon}.svg)"></i></span><b>${label}</b></button>`;
+  const menuCell = (icon, label, go = '') => `<button class="card mcell tap" ${go ? `data-go="${go}"` : ''}><span class="vb"><b class="vbg"></b><i style="--ic:url(${A}buy/${icon}.svg)"></i></span><b>${label}</b></button>`;
   const hero = BY.hero;
   const recentItems = BY.recentIds.map((id) => window.SEARCH.by[id]);
   let buyTab = BY.tabs[0];
@@ -764,8 +764,14 @@
           <span class="tx"><b>${name}</b><span>${hint}</span></span><i class="radio${catPlat === id ? ' on' : ''}"></i></button>`).join('')}
       <div class="sh-safe"></div>`;
   };
-  function openSheet() {
-    renderSheet(); sheetEl.hidden = false; scrimEl.hidden = false; sheetOpenFlag = true; syncTheme();
+  const renderThemeSheet = () => {
+    sheetEl.innerHTML = `
+      <div class="sh-head"><h2>${MR.themeTitle}</h2><button class="sh-x tap" data-close-sheet aria-label="Закрыть"><img src="${A}search/cross.svg" alt=""></button></div>
+      ${MR.themes.map(([id, name]) => `<button class="sh-row tap" data-theme-opt="${id}"><span class="tx"><b>${name}</b></span><i class="radio${appTheme === id ? ' on' : ''}"></i></button>`).join('')}
+      <div class="sh-safe"></div>`;
+  };
+  function openSheet(fn) {
+    (fn || renderSheet)(); sheetEl.hidden = false; scrimEl.hidden = false; sheetOpenFlag = true; syncTheme();
     requestAnimationFrame(() => requestAnimationFrame(() => { sheetEl.classList.add('open'); scrimEl.classList.add('open'); }));
   }
   function closeSheet() {
@@ -811,6 +817,17 @@
     const phone = document.querySelector('.phone');
     const white = phone.classList.contains('hdr-on') || phone.classList.contains('cat-on') || phone.classList.contains('search-on') || phone.classList.contains('art-on');
     document.documentElement.classList.toggle('hdr-on', white);
+    setBars(getComputedStyle(document.documentElement).getPropertyValue(white ? '--bg-main' : '--bg-primary').trim()); // и на экране входа тоже светлые (по просьбе)
+  }
+  // Цвет статус-бара и нижней панели Safari на iPhone: theme-color + фон страницы. После чёрного экрана входа Safari «залипает» на чёрном,
+  // поэтому при смене цвета тег пересоздаётся — так iOS заново считывает цвет.
+  let barColor = '';
+  function setBars(c, force) {
+    if (!c || (c === barColor && !force)) return;
+    barColor = c;
+    const old = document.querySelector('meta[name="theme-color"]'), m = document.createElement('meta');
+    m.name = 'theme-color'; m.content = c; old ? old.replaceWith(m) : document.head.appendChild(m);
+    if (matchMedia('(max-width: 500px)').matches) document.documentElement.style.backgroundColor = c;
   }
   ['pageshow', 'visibilitychange', 'focus', 'resize', 'orientationchange'].forEach((ev) => window.addEventListener(ev, syncTheme));
   setInterval(syncTheme, 1000);
@@ -903,14 +920,149 @@
   $('srch-clear').addEventListener('mousedown', (e) => e.preventDefault());
   renderSearch();
 
+  // ---------- Раздел «Еще» (Figma 214:22236 / 214:22170 / 210:20026) ----------
+  const MR = window.MORE;
+  let moreTab = MR.defaultTab;
+  // Тема приложения: токены Ultima (Light / Dark) переключаются атрибутом data-theme на <html>; выбор запоминается в браузере
+  let appTheme = 'light';
+  try { appTheme = localStorage.getItem('n1p-theme') === 'dark' ? 'dark' : 'light'; } catch (e) {}
+  const applyTheme = (t) => { appTheme = t; document.documentElement.dataset.theme = t; try { localStorage.setItem('n1p-theme', t); } catch (e) {} };
+  document.documentElement.dataset.theme = appTheme;
+  const themeName = () => MR.themes.find(([id]) => id === appTheme)[1];
+  const swState = [true, true, true];
+  const mi = (f) => `<img src="assets/more/${f}.svg" alt="">`;
+  const mrRight = (c) => `${c.badge ? `<span class="mr-badge">${c.badge}</span>` : ''}${c.right ? `<span class="mr-ic">${mi(c.right)}</span>` : ''}`;
+  const mrCell = (c) => `<div class="mr-m"><button class="mr-mc tap${c.top ? ' top' : ''}" data-mr-na><span class="mr-ic big">${mi(c.icon)}</span>
+      <span class="mr-t"><b>${c.title}</b><small${c.hintCls ? ` class="${c.hintCls}"` : ''}>${c.hint}</small></span><span class="mr-r">${mrRight(c)}</span></button></div>`;
+  const mrRows = (rows) => `<div class="section-pad"><div class="card mr-list">${rows.map(([l, v, r]) => `<div class="mr-row"><div class="mr-t"><small>${l}</small><b>${v}</b></div><span class="mr-ic tall">${r ? `<button class="tap" data-mr-na aria-label="${l}">${mi(r)}</button>` : ''}</span></div>`).join('')}</div></div>`;
+  const mrHead = (t) => `<div class="header"><h2>${t}</h2></div>`;
+  function moreBody() {
+    if (moreTab === 'profile') { const p = MR.profile; return `
+      <div class="mr-hero"><div class="card"></div><div class="mr-av">${p.initials}</div><div class="mr-name">${p.name}</div></div>
+      ${p.cells.map(mrCell).join('')}
+      ${mrHead(p.personalTitle)}${mrRows(p.personal)}${mrHead(p.accountsTitle)}${mrRows(p.accounts)}
+      <div class="mr-btnw"><button class="mr-btn tap" data-logout>${p.logout}</button></div>`; }
+    if (moreTab === 'actions') { const a = MR.actions; let k = -1; return `${a.cells.map(mrCell).join('')}${mrHead(a.settingsTitle)}
+      <div class="section-pad"><div class="card mr-list">${a.settings.map((r) => {
+        const hint = r.theme ? themeName() : r.hint, sw = r.toggle ? ++k : -1;
+        const right = r.toggle ? `<button class="mr-sw tap" role="switch" aria-checked="${swState[sw]}" data-mr-sw="${sw}"><i></i></button>` : `<span class="mr-ic">${mi('chevron')}</span>`;
+        return `<${r.toggle ? 'div' : 'button'} class="mr-row set${r.toggle ? '' : ' tap'}"${r.theme ? ' data-theme-open' : r.toggle ? '' : ' data-mr-na'}><div class="mr-t"><b>${r.title}</b>${hint ? `<small class="s14">${hint}</small>` : ''}</div><span class="mr-rt">${right}</span></${r.toggle ? 'div' : 'button'}>`; }).join('')}</div></div>`; }
+    const i = MR.info;
+    return `${i.cells.map(mrCell).join('')}
+      ${header(i.academyTitle)}<div class="hscroll academy">${D.lessons.map(lesson).join('')}</div>
+      ${mrHead(i.docsTitle)}<div class="section-pad"><div class="card mr-docs">${i.docs.map((d) => `<button class="mr-doc tap" data-mr-na><span class="mr-ic big">${mi('document')}</span><span class="mr-t"><b>${d}</b></span><span class="mr-ic">${mi('chevron')}</span></button>`).join('')}</div></div>
+      <div class="mr-m"><div class="mr-mc top"><span class="mr-ic big">${mi(i.version.icon)}</span><span class="mr-t"><b>${i.version.title}</b><small>${i.version.hint}</small></span></div></div>`;
+  }
+  function renderMore() {
+    $('screen-more').innerHTML = `<div class="mr-chips">${MR.chips.map(([id, t]) => `<button class="st-chip tap${id === moreTab ? ' selected' : ''}" data-mt="${id}">${t}</button>`).join('')}</div><div class="mr-body">${moreBody()}</div>`;
+    $('screen-more').querySelectorAll('.hscroll').forEach(enableDrag);
+  }
+  renderMore();
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#screen-more') === null) return;
+    const mt = e.target.closest('[data-mt]'); if (mt) { moreTab = mt.dataset.mt; renderMore(); $('screen-more').scrollTop = 0; return; } // чипсы всегда прилипли сверху — скролл в начало
+    const sw = e.target.closest('[data-mr-sw]');
+    if (sw) { const k = +sw.dataset.mrSw; swState[k] = !swState[k]; sw.setAttribute('aria-checked', swState[k]); return; }
+    if (e.target.closest('[data-theme-open]')) { openSheet(renderThemeSheet); return; }
+    if (e.target.closest('[data-logout]')) { lgOpen(); return; }
+    if (e.target.closest('[data-mr-na]')) showSnack(MR.snack);
+  });
+
+  // ---------- Вход (Figma 217:27140 / 217:27810 ошибка / 217:27909 клавиатура) ----------
+  // Видео играет один раз и остаётся на последнем кадре; когда оно загрузилось, снизу выезжает шторка с вводом номера.
+  const LG = window.LOGIN, loginEl = $('screen-login'), phoneEl = document.querySelector('.phone');
+  const lgImg = (f, c) => `<img src="assets/login/${f}.svg" alt=""${c ? ` class="${c}"` : ''}>`;
+  const lgKeys = [['1', ''], ['2', 'ABC'], ['3', 'DEF'], ['4', 'GHI'], ['5', 'JKL'], ['6', 'MNO'], ['7', 'PQRS'], ['8', 'TUV'], ['9', 'WXYZ']];
+  loginEl.innerHTML = `
+    <video class="lg-video" src="assets/login/bg.mp4" muted playsinline webkit-playsinline preload="auto" aria-hidden="true"></video>
+    <div class="lg-sb"><span class="time">9:41</span>${lgImg('statusbar-white')}</div>
+    <div class="lg-sheet" id="lg-sheet">
+      <h1>${LG.title}</h1>
+      <div class="lg-fw">
+        <label class="lg-in" id="lg-in">${lgImg('phone')}<input id="lg-input" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="go" placeholder="${LG.placeholder}" aria-label="${LG.placeholder}"><button class="lg-x" id="lg-x" type="button" aria-label="Очистить" hidden>${lgImg('cross')}</button></label>
+        <button class="lg-btn tap" id="lg-go" type="button">${LG.button}</button>
+      </div>
+      <p class="lg-cons">${LG.consent}</p>
+      <button class="lg-docs tap" type="button" id="lg-docs"><b>${LG.docs}</b><img src="${A}imgChevronForwardM.svg" alt=""></button>
+      <div class="lg-hi"></div>
+    </div>
+    <div class="lg-kb" id="lg-kb" hidden>${lgKeys.map(([n, l]) => `<button class="k" data-k="${n}" tabindex="-1"><b>${n}</b><small>${l}</small></button>`).join('')}<img class="k-img" src="assets/login/key-sym.svg" alt=""><button class="k" data-k="0" tabindex="-1"><b>0</b></button><button class="k-img" data-k="del" tabindex="-1" aria-label="Удалить"><img src="assets/login/key-del.svg" alt=""></button></div>`;
+  const lgInput = $('lg-input'), lgIn = $('lg-in'), lgSheet = $('lg-sheet'), lgVideo = loginEl.querySelector('.lg-video'), lgKb = $('lg-kb');
+  lgVideo.muted = true; lgVideo.defaultMuted = true; lgVideo.setAttribute('muted', ''); // без звука: свойство muted из innerHTML не всегда применяется, и автоплей блокируется
+  const lgTouch = matchMedia('(hover: none) and (pointer: coarse)').matches;
+  let lgDigits = '', lgDone = false, lgShown = false;
+  // маска +7 (XXX) XXX-XX-XX: 10 цифр после кода страны, больше ввести нельзя
+  const lgFmt = (d) => d ? `+7 (${d.slice(0, 3)}${d.length > 3 ? ') ' + d.slice(3, 6) : ''}${d.length > 6 ? '-' + d.slice(6, 8) : ''}${d.length > 8 ? '-' + d.slice(8, 10) : ''}` : '';
+  const lgRender = () => {
+    lgInput.value = lgFmt(lgDigits); $('lg-x').hidden = !lgDigits; lgIn.classList.remove('err');
+    const n = lgInput.value.length; try { lgInput.setSelectionRange(n, n); } catch (e) {}
+  };
+  const lgSet = (raw, hadPrefix) => {
+    let d = raw.replace(/\D/g, '');
+    if (hadPrefix) d = d.slice(1); // первая «7» в «+7» — код страны
+    else if (d.length > 10 && /^[78]/.test(d)) d = d.slice(1); // вставили номер целиком: 8… / 7…
+    lgDigits = d.slice(0, 10); lgRender();
+  };
+  lgInput.addEventListener('input', () => lgSet(lgInput.value, lgInput.value.startsWith('+7')));
+  lgInput.addEventListener('beforeinput', (e) => { if (e.inputType === 'deleteContentBackward') { e.preventDefault(); lgDigits = lgDigits.slice(0, -1); lgRender(); } });
+  lgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); lgSubmit(); } });
+  const lgCaret = () => requestAnimationFrame(() => { const n = lgInput.value.length; try { lgInput.setSelectionRange(n, n); } catch (e) {} });
+  lgInput.addEventListener('click', lgCaret);
+  $('lg-x').addEventListener('click', () => { lgDigits = ''; lgRender(); lgInput.focus(); });
+  // поле и кнопка подъезжают вверх над клавиатурой; под клавиатурой остаются текст согласия и «Ознакомиться с документами»
+  let lgBelow = 0;
+  const lgShift = (kb) => {
+    if (!lgBelow) lgBelow = lgSheet.offsetHeight - (loginEl.querySelector('.lg-fw').offsetTop + $('lg-go').offsetTop + $('lg-go').offsetHeight); // offset-размеры не зависят от масштаба рамки телефона на ноутбуке
+    lgSheet.style.transform = kb > 0 ? `translateY(${-Math.max(0, kb + 17 - lgBelow)}px)` : '';
+  };
+  const lgKbMeasure = () => { // реальная клавиатура телефона: высота = разница между окном и видимой областью
+    const vv = window.visualViewport; if (!vv || !lgTouch) return;
+    lgShift(Math.max(0, window.innerHeight - vv.height - vv.offsetTop));
+  };
+  if (window.visualViewport) { visualViewport.addEventListener('resize', lgKbMeasure); visualViewport.addEventListener('scroll', lgKbMeasure); }
+  lgInput.addEventListener('focus', () => { lgIn.classList.remove('err'); lgCaret(); if (!lgTouch) { lgKb.hidden = false; requestAnimationFrame(() => { lgKb.classList.add('on'); lgShift(291); }); } else setTimeout(lgKbMeasure, 300); });
+  lgInput.addEventListener('blur', () => { if (!lgTouch) { lgKb.classList.remove('on'); lgShift(0); setTimeout(() => { if (!lgKb.classList.contains('on')) lgKb.hidden = true; }, 260); } else lgShift(0); });
+  // экранная цифровая клавиатура для ноутбука (Figma 217:27909); на телефоне — настоящая
+  lgKb.addEventListener('mousedown', (e) => e.preventDefault());
+  lgKb.addEventListener('click', (e) => {
+    const k = e.target.closest('[data-k]'); if (!k) return;
+    if (k.dataset.k === 'del') lgDigits = lgDigits.slice(0, -1); else lgDigits = (lgDigits + k.dataset.k).slice(0, 10);
+    lgRender();
+  });
+  function lgSubmit() {
+    if (lgDone) return;
+    if (!lgDigits) { lgIn.classList.add('err'); return; } // пусто — состояние ошибки
+    lgDone = true; lgInput.blur(); lgVideo.pause();
+    go('home'); loginEl.classList.add('out'); phoneEl.classList.remove('login-on'); syncTheme(); setBars(getComputedStyle(document.documentElement).getPropertyValue('--bg-primary').trim(), true); setTimeout(syncTheme, 350);
+    setTimeout(() => { loginEl.hidden = true; }, 320);
+  }
+  $('lg-go').addEventListener('click', lgSubmit);
+  function lgOpen() { // «Выйти из профиля»: снова экран входа, видео и шторка — с начала
+    lgDone = false; lgShown = false; lgDigits = ''; lgRender(); lgIn.classList.remove('err');
+    lgSheet.classList.remove('in'); lgSheet.style.transform = ''; lgKb.classList.remove('on'); lgKb.hidden = true;
+    loginEl.hidden = false; loginEl.classList.remove('out'); phoneEl.classList.add('login-on'); hideSnack(); syncTheme();
+    const go1 = () => { const p = lgVideo.play(); if (p && p.catch) p.catch(() => lgReveal()); };
+    lgVideo.addEventListener('seeked', go1, { once: true }); lgVideo.currentTime = 0; if (lgVideo.readyState < 2) go1(); // после перемотки в начало запускаем заново
+    setTimeout(lgReveal, 2200);
+    if (location.hash !== '#/login') location.hash = '#/login';
+  }
+  window.addEventListener('hashchange', () => { if (location.hash === '#/login' && lgDone) lgOpen(); });
+  $('lg-docs').addEventListener('click', () => { showSnack(window.MORE.snack); snackEl.style.bottom = '46px'; });
+  const lgReveal = () => { if (lgShown) return; lgShown = true; requestAnimationFrame(() => lgSheet.classList.add('in')); };
+  lgVideo.addEventListener('playing', () => setTimeout(lgReveal, 350));
+  setTimeout(lgReveal, 2200); // если видео не загрузилось или автоплей запрещён — шторка всё равно выезжает
+  lgVideo.play && lgVideo.play().catch(() => lgReveal());
+  const lgNeeded = !location.hash || location.hash === '#/' || location.hash === '#/login';
+  if (lgNeeded) { loginEl.hidden = false; phoneEl.classList.add('login-on'); } else { lgDone = true; }
+
   // ---------- Нижняя навигация и переходы между экранами ----------
   // Живые вкладки: Главная и Портфель (остальных экранов в макетах пока нет)
   const tabs = [['home', 'Главная', 'imgNavigationHomeM'], ['portfolio', 'Портфель', 'imgPfmPrmM'], ['buy', 'Купить', 'imgNavigationQuotationsM'],
-    [null, 'Поддержка', 'imgNavigationChatM'], [null, 'Еще', 'imgNavigationMoreM']];
+    ['support', 'Поддержка', 'imgNavigationChatM'], ['more', 'Еще', 'imgNavigationMoreM']];
   $('tabs').innerHTML = tabs.map(([id, t, i]) =>
-    `<button class="tab tap" ${id ? `data-go="${id}"` : ''}><i style="--ic:url(${A}${i}.svg)"></i><span>${t}</span></button>`).join('');
+    `<button class="tab tap" ${id === 'support' ? 'data-support' : id ? `data-go="${id}"` : ''}><i style="--ic:url(${A}${i}.svg)"></i><span>${t}</span></button>`).join('');
 
-  const screens = ['home', 'portfolio', 'buy', 'catalog', 'news', 'search', 'article', 'note', 'stock'];
+  const screens = ['home', 'portfolio', 'buy', 'catalog', 'news', 'search', 'article', 'note', 'stock', 'more'];
   let articleFrom = 'home';
   let noteFrom = 'home';
   let stockPrev = 'home';
@@ -938,13 +1090,17 @@
   };
   const go = (name) => { show(name); if (location.hash !== '#/' + name) location.hash = '#/' + name; };
   document.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-go]'); if (t) go(t.dataset.go);
+    if (e.target.closest('[data-support]')) { showSnack('В прототипе поддержка недоступна'); return; }
+    const t = e.target.closest('[data-go]');
+    if (t) { if (t.dataset.go === 'more') { moreTab = t.dataset.more || MR.defaultTab; renderMore(); $('screen-more').scrollTop = 0; } go(t.dataset.go); }
     const ct = e.target.closest('.chip-tab');
     if (ct) { newsTab = ct.dataset.tab; renderNews(); $('news-scroll').scrollTop = 0; }
     const cc = e.target.closest('.catchip');
     if (cc) { catType = cc.dataset.ct === catType && catType === 'fav' ? 'all' : cc.dataset.ct; renderCatalog(); }
     if (e.target.closest('#cat-plat, #cat-plat-nav')) openSheet();
     if (e.target.closest('[data-close-sheet]')) closeSheet();
+    const to = e.target.closest('[data-theme-opt]');
+    if (to) { applyTheme(to.dataset.themeOpt); renderThemeSheet(); renderMore(); setTimeout(closeSheet, 220); }
     const pr = e.target.closest('[data-plat]');
     if (pr) { catPlat = pr.dataset.plat; catType = 'all'; renderCatalog(); renderSheet(); setTimeout(closeSheet, 220); }
     const bc = e.target.closest('.buy-chip');

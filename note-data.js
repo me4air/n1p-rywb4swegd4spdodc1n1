@@ -116,7 +116,7 @@
       ],
       howNote: ['Полные условия ', 'отражены в Termsheet'],
       scenTitle: 'Сценарии',
-      legend: [['URA', '#2563eb'], ['XLE', '#bb5900'], ['XLU', '#008831'], ['COPX', '#161519']],
+      legend: [['URA', 'var(--content-action)'], ['XLE', 'var(--content-warning)'], ['XLU', 'var(--content-success)'], ['COPX', 'var(--content-primary)']],
       scen: [
         { name: 'Оптимистичный', tag: ['info', 'Вероятность 30%'], months: 12, invested: '100 000 $', term: '12 месяцев', got: '110 500 $', gotColor: 'success',
           text: 'Через 12 месяцев каждый из четырёх базовых активов на уровне 100% или выше от начального — происходит автоколл. Вы получаете номинал и купоны за год',
