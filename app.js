@@ -968,7 +968,7 @@
   const lgImg = (f, c) => `<img src="assets/login/${f}.svg" alt=""${c ? ` class="${c}"` : ''}>`;
   const lgKeys = [['1', ''], ['2', 'ABC'], ['3', 'DEF'], ['4', 'GHI'], ['5', 'JKL'], ['6', 'MNO'], ['7', 'PQRS'], ['8', 'TUV'], ['9', 'WXYZ']];
   loginEl.innerHTML = `
-    <video class="lg-video" src="assets/login/bg.mp4?v=3" muted playsinline webkit-playsinline preload="auto" aria-hidden="true"></video>
+    <video class="lg-video" src="assets/login/bg.mp4?v=4" muted playsinline webkit-playsinline preload="auto" aria-hidden="true"></video>
     <div class="lg-sb"><span class="time">9:41</span>${lgImg('statusbar-white')}</div>
     <div class="lg-sheet" id="lg-sheet">
       <h1>${LG.title}</h1>
