@@ -822,13 +822,7 @@
   // Цвет статус-бара и нижней панели Safari на iPhone: theme-color + фон страницы. После чёрного экрана входа Safari «залипает» на чёрном,
   // поэтому при смене цвета тег пересоздаётся — так iOS заново считывает цвет.
   let barColor = '';
-  function setBars(c, force) {
-    if (!c || (c === barColor && !force)) return;
-    barColor = c;
-    const old = document.querySelector('meta[name="theme-color"]'), m = document.createElement('meta');
-    m.name = 'theme-color'; m.content = c; old ? old.replaceWith(m) : document.head.appendChild(m);
-    if (matchMedia('(max-width: 500px)').matches) document.documentElement.style.backgroundColor = c;
-  }
+  function setBars() {} // theme-color не задаём: Safari сам берёт цвет полос из страницы (видео на входе, фон экрана после) — полосы «прозрачные»
   ['pageshow', 'visibilitychange', 'focus', 'resize', 'orientationchange'].forEach((ev) => window.addEventListener(ev, syncTheme));
   setInterval(syncTheme, 1000);
   const PF_THRESHOLD = 60; // scrollTop, при котором карточка баланса (низ на 108 px) полностью скрыта под шапкой (48 px)

@@ -462,7 +462,7 @@ button { font: inherit; color: inherit; background: none; border: 0; text-align:
   .phone { position: fixed; inset: 0; width: auto; height: auto; border-radius: 0; box-shadow: none;
            display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
   .statusbar, .home-ind { display: none; }
-  .phone::before { content: ''; position: absolute; z-index: 6; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: var(--bg-primary); }
+  .phone::before { content: ''; position: absolute; z-index: 6; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: transparent; }
   .phone.hdr-on::before, .phone.cat-on::before, .phone.search-on::before, .phone.art-on::before { background: var(--bg-main); }
   .screens { position: relative; inset: auto; flex: 1 1 auto; min-height: 0; width: 100%; }
   .screen { -webkit-overflow-scrolling: touch; }
@@ -918,7 +918,7 @@ img[src$="imgMagnifierM.svg"], img[src$="note/info.svg"], .statusbar img { filte
 .mcell .vb .vbg { position: absolute; inset: 0; background: var(--bg-action-light); -webkit-mask: url(assets/buy/vbox.svg) center / contain no-repeat; mask: url(assets/buy/vbox.svg) center / contain no-repeat; }
 
 /* ---------- Вход (Figma 217:27140) ---------- */
-.login { position: absolute; z-index: 30; inset: 0; background: #000; overflow: hidden; transition: opacity .3s ease; }
+.login { position: absolute; z-index: 30; inset: 0; background: var(--bg-main); overflow: hidden; transition: opacity .3s ease; }
 .login.out { opacity: 0; pointer-events: none; }
 .lg-video { position: absolute; left: -1px; top: -104px; width: calc(100% + 3px); height: auto; aspect-ratio: 9 / 16; object-fit: cover; background: #000; }
 .lg-sb { position: absolute; z-index: 2; top: 0; left: 0; right: 0; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 32px; color: #fff; }
@@ -954,3 +954,4 @@ img[src$="imgMagnifierM.svg"], img[src$="note/info.svg"], .statusbar img { filte
 /* после перезагрузки сразу после входа (iPhone) — мягкое появление «Главной» */
 .phone.enter { animation: lgenter .35s ease; }
 @keyframes lgenter { from { opacity: 0; } }
+.login::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 62%; background: #000; }
