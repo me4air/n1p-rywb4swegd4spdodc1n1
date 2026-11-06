@@ -94,9 +94,9 @@ button { font: inherit; color: inherit; background: none; border: 0; text-align:
 /* Profile bar */
 .profile-bar { display: flex; align-items: center; justify-content: space-between; padding: 4px 16px; height: 48px; }
 .profile-info { display: flex; align-items: center; gap: 8px; }
-.avatar { position: relative; width: 36px; height: 36px; }
+.avatar { position: relative; box-sizing: border-box; width: 36px; height: 36px; border: 2px solid var(--bg-secondary); border-radius: 50%; background: var(--bg-tertiary); } /* кружок: BG/Tertiary + обводка BG/Secondary (как в макете), без картинки */
 .avatar img { position: absolute; inset: 0; width: 36px; height: 36px; }
-.avatar span { position: absolute; left: 7px; top: 6px; font: 600 16px/24px Roboto; color: var(--content-action); }
+.avatar span { position: absolute; left: 5px; top: 4px; font: 600 16px/24px Roboto; color: var(--content-action); }
 .profile-name { font: 600 14px/20px Roboto; white-space: nowrap; }
 .profile-role { font: 400 12px/16px Roboto; color: var(--content-action); white-space: nowrap; }
 .bell { position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; padding: 0 3px; }

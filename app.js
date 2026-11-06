@@ -143,7 +143,7 @@
   $('screen-home').innerHTML = `
     <div class="profile-bar">
       <div class="profile-info tap" data-go="more" data-more="profile">
-        <div class="avatar"><img src="${A}imgEllipse662.svg" alt=""><span>${D.user.initials}</span></div>
+        <div class="avatar"><span>${D.user.initials}</span></div>
         <div><div class="profile-name">${D.user.name}</div><div class="profile-role">${D.user.status}</div></div>
       </div>
       <button class="bell tap"><img src="${A}imgBellM.svg" alt=""><span class="badge">${D.user.unread}</span></button>
@@ -1098,7 +1098,12 @@
     if (e.target.closest('#cat-plat, #cat-plat-nav')) openSheet();
     if (e.target.closest('[data-close-sheet]')) closeSheet();
     const to = e.target.closest('[data-theme-opt]');
-    if (to) { applyTheme(to.dataset.themeOpt); renderThemeSheet(); renderMore(); setTimeout(closeSheet, 220); }
+    if (to) {
+      applyTheme(to.dataset.themeOpt);
+      // iPhone/Safari: полосы вверху и внизу не перекрашиваются без перезагрузки — на телефоне перезагружаем страницу на этом же экране
+      if (lgTouch) { try { sessionStorage.setItem('n1p-after-login', '1'); } catch (e) {} location.hash = '#/more'; location.reload(); return; }
+      renderThemeSheet(); renderMore(); setTimeout(closeSheet, 220);
+    }
     const pr = e.target.closest('[data-plat]');
     if (pr) { catPlat = pr.dataset.plat; catType = 'all'; renderCatalog(); renderSheet(); setTimeout(closeSheet, 220); }
     const bc = e.target.closest('.buy-chip');
