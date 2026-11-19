@@ -1,5 +1,6 @@
 /* Ultima tokens (Tokens ~ Ultima, Light). Источник: get_variable_defs узла 95:10583 */
 :root {
+  --op-up: #1dbe67; --op-dn: #e25a5a;
   /* Tokens ~ Ultima, коллекция «Ultima Tokens»: Light (rO9MJtzK7xLNe2j6HrPlmF). Значения Dark — в блоке :root[data-theme="dark"] ниже */
   color-scheme: light;
   --bg-main: #ffffff; --bg-primary: #f3f4f5; --bg-secondary: #e9e9eb; --bg-tertiary: #dcdcdd;
@@ -961,3 +962,101 @@ img[src$="imgMagnifierM.svg"], img[src$="note/info.svg"], .statusbar img { filte
 .phone.enter { animation: lgenter .35s ease; }
 @keyframes lgenter { from { opacity: 0; } }
 .login::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 62%; background: #000; }
+
+/* ---------- Advisory-сервис (Figma 253:18735) ---------- */
+.main-banner .img { position: relative; overflow: hidden; }
+.main-banner .img > img.ibox { position: absolute; left: 0; top: 0; width: 96px; height: 104px; max-width: none; pointer-events: none; }
+.adv-pad { padding: 8px 16px; }
+.adv-hero { position: relative; height: 176px; padding: 16px; border-radius: var(--r-l); overflow: hidden; color: var(--content-white); display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(110.1deg, #264cd5 30.39%, #060d5b 104.95%), #2563eb; }
+.adv-hero img { position: absolute; max-width: none; pointer-events: none; }
+.adv-hero b { position: relative; width: 217px; font: 600 24px/32px Roboto; }
+.adv-hero span { position: relative; width: 158px; font: 400 12px/16px Roboto; }
+.adv-cell { display: flex; gap: 16px; align-items: center; padding: 16px; border-radius: var(--r-l); background: var(--bg-main); text-align: left; }
+.adv-cell.top { align-items: flex-start; }
+.adv-cell > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.adv-cell b { font: 600 16px/24px Roboto; }
+.adv-cell span { font: 400 12px/16px Roboto; color: var(--content-secondary); }
+.adv-cell span.t14 { font: 400 14px/20px Roboto; }
+.adv-ck { flex: none; width: 24px; height: 24px; background: var(--content-success); -webkit-mask: url(assets/advisory/check.svg) center / contain no-repeat; mask: url(assets/advisory/check.svg) center / contain no-repeat; }
+.adv-cell > span.adv-ic { position: relative; flex: none; width: 48px; height: 48px; }
+.adv-ic::before { content: ''; position: absolute; inset: 0; background: var(--bg-action-light); -webkit-mask: url(assets/buy/vbox.svg) center / contain no-repeat; mask: url(assets/buy/vbox.svg) center / contain no-repeat; }
+.adv-ic i { position: absolute; inset: 12px; background: var(--content-action); -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat; }
+.adv-exp { display: flex; flex-direction: column; }
+.ex-top { position: relative; height: 152px; overflow: hidden; color: var(--content-white); }
+.ex-bg { position: absolute; left: 0; top: 28px; width: 100%; height: 124px; border-radius: var(--r-l) var(--r-l) 0 0; }
+.ex-top img { position: absolute; max-width: none; pointer-events: none; }
+.ex-txt { position: absolute; left: 0; top: 28px; right: 0; height: 124px; padding: 12px; display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+.ex-txt > b { width: 187px; font: 600 16px/24px Roboto; }
+.ex-q { flex: 1; min-height: 0; display: flex; gap: 4px; opacity: .54; }
+.ex-q i { font: 600 40px/48px Roboto; font-style: normal; }
+.ex-q p { width: 181px; margin: 0; padding: 6px 0; box-sizing: border-box; display: flex; align-items: center; font: 400 12px/16px Roboto; overflow: hidden; }
+.ex-rows { background: var(--bg-main); border-radius: 0 0 var(--r-l) var(--r-l); padding: 8px 0; }
+.exr { display: flex; gap: 16px; align-items: flex-start; padding: 8px 16px; font: 400 16px/24px Roboto; }
+.exr span { flex: 1; }
+.exr b { flex: 1; min-width: 0; text-align: right; font-weight: 600; }
+.exr b.pos { color: var(--content-success); }
+.adv-buy button { background: var(--bg-action-base); border-radius: var(--r-m); }
+
+/* ---------- Событийные опционы (Figma 253:43255 · 253:41713) ---------- */
+.op-head { padding: 8px 16px; }
+.op-head h1 { margin: 0; font: 600 24px/32px Roboto; }
+.op-head p { margin: 2px 0 0; font: 400 16px/24px Roboto; color: var(--content-secondary); }
+.op-list { padding: 8px 16px; display: flex; flex-direction: column; gap: 16px; }
+.op-li { display: flex; flex-direction: column; width: 100%; padding: 4px 0; border-radius: var(--r-l); background: var(--bg-main); text-align: left; }
+.op-li .op-ih { padding: 16px; }
+.op-li .instr .data > .row { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+.op-sp { display: block; padding: 0 16px; color: var(--content-primary); }
+.op-sp svg { display: block; overflow: visible; }
+.op-tags { display: flex; gap: 4px; padding: 8px 16px; }
+.op-tag { padding: 4px 8px; border-radius: 8px; background: var(--bg-secondary); font: 600 12px/16px Roboto; white-space: nowrap; }
+.op-chip { position: absolute; right: 16px; z-index: 3; padding: 4px 12px; border-radius: var(--r-3xl); background: var(--bg-action-light); color: var(--content-action); font: 600 12px/16px Roboto; white-space: nowrap; pointer-events: none; }
+.op-in { position: relative; }
+.op-plot .op-gv { right: auto; top: 11px; height: 204px; width: 0; border-top: 0; border-left: 1px dashed var(--content-disabled); }
+.op-plot .op-gc { right: auto; left: 0; }
+.op-dot { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--content-primary); box-shadow: 0 0 0 2px var(--bg-main); }
+.op-axis { position: relative; height: 32px; font: 400 12px/16px Roboto; color: var(--content-secondary); }
+.op-axis p { position: absolute; top: 8px; margin: 0; transform: translateX(-50%); }
+.cond-grid.op-g { padding: 4px 16px; }
+.op-v { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.op-card { padding: 8px 0 16px; }
+.op-card h3 { margin: 0; padding: 8px 16px; font: 600 18px/28px Roboto; }
+.op-card > p { margin: 0; padding: 0 16px; font: 400 16px/24px Roboto; }
+.op-card .txt-btn { margin: 8px 16px 0; }
+.op-r { display: flex; gap: 16px; padding: 8px 16px; font: 400 16px/24px Roboto; }
+.op-r span { flex: 1; } .op-r span.w { flex: none; width: 164px; }
+.op-r b { flex: 1; text-align: right; font-weight: 600; }
+.op-r b.pos { color: var(--content-success); } .op-r b.neg { color: var(--content-negative); }
+.op-a { display: flex; gap: 8px; align-items: flex-start; padding: 8px 16px; }
+.op-a i { flex: none; width: 16px; height: 16px; margin-top: 4px; background: var(--content-success); -webkit-mask: url(assets/advisory/check.svg) center / contain no-repeat; mask: url(assets/advisory/check.svg) center / contain no-repeat; }
+.op-a p { margin: 0; font: 400 14px/20px Roboto; }
+#screen-stock.opt .st-trade .sell { display: none; }
+.sh-scroll { max-height: 440px; overflow-y: auto; padding: 0 16px 8px; scrollbar-width: none; }
+.sh-scroll::-webkit-scrollbar { display: none; }
+.op-md h3 { margin: 16px 0 4px; font: 600 18px/28px Roboto; }
+.op-md p { margin: 0 0 8px; font: 400 14px/20px Roboto; }
+.op-ex { margin: 8px 0; padding: 12px 16px; border-radius: var(--r-m); background: var(--bg-primary); }
+.op-ex b { display: block; font: 600 14px/20px Roboto; margin-bottom: 4px; }
+.op-ex p { margin: 0; }
+.op-md .op-note { margin-top: 12px; font: 400 12px/16px Roboto; color: var(--content-secondary); }
+.sh-btn { padding: 8px 16px 0; }
+.op-ok { display: flex; align-items: center; justify-content: center; width: 100%; height: 56px; border-radius: var(--r-m); background: var(--bg-action-base); color: var(--content-white); font: 600 16px/20px Roboto; }
+
+.op-cw #op-gs { border-top-color: var(--content-action); }
+.op-plot .gl { z-index: 0; }
+.op-plot svg { z-index: 1; }
+.op-dot { z-index: 2; }
+
+/* ---------- Именные портфели (Figma 254:44459) ---------- */
+.ex-cap { position: absolute; left: 8px; top: 8px; width: 195px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 400 12px/16px Roboto; color: var(--content-secondary); }
+
+/* ---------- Детальная страница портфеля (Figma 254:44992) ---------- */
+.pfd-hero { display: block; width: 100%; height: 176px; border-radius: var(--r-l); object-fit: contain; }
+.pfd-buy button { background: var(--bg-success); }
+.pd-chart { padding: 8px 16px; }
+.pd-chart svg { display: block; }
+.pd-ax { font: 400 12px/16px Roboto; fill: var(--content-secondary); }
+.pd-leg { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 8px 16px; }
+.pd-leg span { display: flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: var(--r-3xl); background: var(--bg-primary); font: 600 12px/16px Roboto; }
+.pd-leg i { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1px var(--bg-primary); }
+.pd-comp { padding: 0 16px; }
+.pd-comp .instr .data > .row { display: flex; justify-content: space-between; gap: 16px; align-items: center; }

@@ -18,11 +18,11 @@
     </${chevron ? 'button' : 'div'}>`;
 
   const mainBanner = (b, snack) => `
-    <a class="main-banner tap"${b.note ? ' data-note="1"' : snack ? ' data-snack="1"' : ''}>
+    <a class="main-banner tap"${b.note ? ' data-note="1"' : b.opt ? ' data-opt="1"' : b.pfn ? ' data-pfn="1"' : snack ? ' data-snack="1"' : ''}>
       <div class="bg" style="background:${b.bg}">${b.bgImg ? `<img src="${A}${b.bgImg.src}" style="position:absolute;max-width:none;${b.bgImg.style}" alt="">` : ''}</div>
       <div class="row">
         <div class="text"><b>${b.title.join('<br>')}</b><span>${b.sub}</span></div>
-        <div class="img"><div>${b.img ? `<img src="${A}${b.img}" style="${b.imgStyle}" alt="">` : ''}</div></div>
+        <div class="img">${b.imgBox ? `<img class="ibox" src="${A}${b.imgBox}" alt="">` : `<div>${b.img ? `<img src="${A}${b.img}" style="${b.imgStyle}" alt="">` : ''}</div>`}</div>
       </div>
     </a>`;
 
@@ -152,7 +152,7 @@
 
     <div class="search-row"><label class="search tap" data-go="search"><img src="${A}imgMagnifierM.svg" alt=""><input type="text" placeholder="Название, тикер или isin" readonly tabindex="-1"></label></div>
 
-    <div class="hscroll banners">${D.mainBanners.map((b) => mainBanner(b, true)).join('')}</div>
+    <div class="hscroll banners">${D.mainBanners.map((b) => mainBanner(b, false)).join('')}</div>
 
     <div class="section-pad">
       <button class="card balance tap" data-go="portfolio">
@@ -173,9 +173,9 @@
     ${header('Взлеты и падения дня', false)}
     ${collRow(CL.movers)}
 
-    ${header('Advisory-сервис', false)}
+    ${header('Advisory-сервис', true, 'advisory')}
     <div class="hscroll advisories">${D.advisory.map((x) => `
-      <a class="advisory tap">
+      <a class="advisory tap" data-adv>
         <span class="who">${x.name}</span>
         <div class="bg" style="background:${x.bg}"></div><img src="${A}${x.img}" style="${x.imgStyle}" alt="">
         <div class="txt"><b>${x.title}</b><span>${x.sub}</span></div>
@@ -383,15 +383,15 @@
   }
   function openHint(card) {
     closeHint();
-    const grid = $('cond-grid'), ic = card.querySelector('.ci');
+    const grid = card.closest('.cond-grid') || $('cond-grid'), ic = card.querySelector('.ci');
     const h = document.createElement('div');
     h.id = 'note-hint'; h.className = 'note-hint';
-    h.innerHTML = `<div class="nh-box">${NT.overview.hints[card.dataset.hint]}</div><svg class="nh-tail" width="16" height="10" viewBox="0 0 16 10" aria-hidden="true"><path d="M0 0H16L8 10Z" fill="rgba(18,18,18,.8)"/></svg>`;
+    h.innerHTML = `<div class="nh-box">${NT.overview.hints[card.dataset.hint] || window.OPT.hints[card.dataset.hint] || window.PFD.daulet.hints[card.dataset.hint]}</div><svg class="nh-tail" width="16" height="10" viewBox="0 0 16 10" aria-hidden="true"><path d="M0 0H16L8 10Z" fill="rgba(18,18,18,.8)"/></svg>`;
     grid.appendChild(h);
     h.style.top = (card.offsetTop - h.offsetHeight - 4) + 'px';
     h.querySelector('.nh-tail').style.left = (ic.offsetLeft - 16) + 'px';
     card.classList.add('open');
-    const sc = $('note-scroll'), k = sc.getBoundingClientRect().height / sc.clientHeight; // экран может быть масштабирован
+    const sc = card.closest('.note-scroll') || $('note-scroll'), k = sc.getBoundingClientRect().height / sc.clientHeight; // экран может быть масштабирован
     const need = (h.getBoundingClientRect().top - sc.getBoundingClientRect().top - sc.querySelector('.note-chips').getBoundingClientRect().height) / k;
     if (need < 8) sc.scrollBy({ top: need - 8, behavior: 'smooth' }); // балун не должен прятаться под вкладками
   }
@@ -416,14 +416,14 @@
 
   // ---------- Страница инструмента (Figma 179:15855) ----------
   const ST = window.STOCK, NBS = ' ';
-  const stockFav = {}; let stockId = 'AAPL', stockTab = 'overview', stockRange = 'day', stockFrom = 'home';
+  const stockFav = {}; let optMode = null, optFrom = 'home'; let stockId = 'AAPL', stockTab = 'overview', stockRange = 'day', stockFrom = 'home';
   const stockMore = {};
   const stNum = (n, d) => { const [i, f] = Math.abs(n).toFixed(d).split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g, NBS) + (f ? ',' + f : ''); };
   const stMoney = (n, it) => `${stNum(n, it.decimals)}${NBS}${it.cur}`;
   // детерминированный «рынок»: случайное блуждание с памятью и всплесками волатильности, привязанное к началу и концу периода
   const stRng = (str) => { let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } let a = h >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; };
   const ST_GEN = { // видимых точек, точек «до окна», размах шума в % от цены
-    day: [84, 24, 2.4], week: [65, 18, 3.4], month: [66, 18, 6], m6: [130, 36, 12], year: [150, 42, 22], all: [140, 40, 55],
+    day: [84, 24, 2.4], week: [65, 18, 3.4], month: [66, 18, 6], m6: [130, 36, 12], year: [150, 42, 22], all: [140, 40, 55], opt: [294, 0, 55],
   };
   function stSeries(it, range, S, E) {
     const [n, pre, amp] = ST_GEN[range], N = n + pre, r = stRng(it.ticker + range);
@@ -596,17 +596,20 @@
     l.scrollTop = m.offsetTop + m.offsetHeight / 2 - l.clientHeight / 2;
   }
   function renderStock() {
-    const it = ST.items[stockId], chips = $('st-chips');
-    chips.innerHTML = ST.tabs.map(([id, t]) => `<button class="st-chip tap${id === stockTab ? ' selected' : ''}" data-st="${id}">${t}</button>`).join('');
+    closeHint();
+    const it = ST.items[stockId], chips = $('st-chips'), op = optMode ? OPT.items[optMode] : null;
+    chips.innerHTML = (op ? OPT.tabs : ST.tabs).map(([id, t]) => `<button class="st-chip tap${id === stockTab ? ' selected' : ''}" data-st="${id}">${t}</button>`).join('');
     const sel = chips.querySelector('.selected'); // выбранная вкладка всегда в зоне видимости
     if (sel.offsetLeft + sel.offsetWidth + 16 > chips.scrollLeft + chips.clientWidth) chips.scrollLeft = sel.offsetLeft + sel.offsetWidth + 16 - chips.clientWidth;
     else if (sel.offsetLeft - 16 < chips.scrollLeft) chips.scrollLeft = Math.max(0, sel.offsetLeft - 16);
-    $('st-fav').classList.toggle('on', !!stockFav[stockId]); $('st-fav').setAttribute('aria-pressed', !!stockFav[stockId]);
-    $('st-title').textContent = it.navTitle; $('st-sub').textContent = it.ticker;
+    const fk = op ? 'o_' + optMode : stockId;
+    $('st-fav').classList.toggle('on', !!stockFav[fk]); $('st-fav').setAttribute('aria-pressed', !!stockFav[fk]);
+    $('st-title').textContent = op ? op.name : it.navTitle; $('st-sub').textContent = it.ticker;
+    $('screen-stock').classList.toggle('opt', !!op); $('st-trade').querySelector('.buy').textContent = op ? OPT.buy : ST.buy;
     $('screen-stock').classList.toggle('book', stockTab === 'book'); $('screen-stock').classList.toggle('wbar', stockTab === 'book' || stockTab === 'divs' || stockTab === 'hist');
-    $('st-body').innerHTML = stockTab === 'overview' ? stockOverview(it) : stockTab === 'book' ? stockBook(it) : stockTab === 'about' ? stockAbout(it) : stockTab === 'divs' ? stockDivs(it) : stockTab === 'hist' ? stockHist(it) : `<div class="st-empty">${ST.empty}</div>`;
+    $('st-body').innerHTML = stockTab === 'overview' ? (op ? optionOverview(op, it) : stockOverview(it)) : stockTab === 'book' ? stockBook(it) : stockTab === 'about' ? stockAbout(it) : stockTab === 'divs' ? stockDivs(it) : stockTab === 'hist' ? stockHist(it) : `<div class="st-empty">${ST.empty}</div>`;
     if (stockTab === 'book') { stBookCenter(); requestAnimationFrame(stBookCenter); }
-    if (stockTab === 'overview') { renderStockChart(); stChartPointer($('st-chart')); }
+    if (stockTab === 'overview') { if (op) renderOptChart(op, it); else { renderStockChart(); stChartPointer($('st-chart')); } }
   }
   $('screen-stock').innerHTML = `
     <div class="note-nav st-nav"><button class="back tap" data-back="stock" aria-label="Назад"><i></i></button><span class="st-t"><b id="st-title"></b><span id="st-sub"></span></span><span class="sp st-r"><button class="st-fav tap" id="st-fav" aria-label="В избранное" aria-pressed="false"></button></span></div>
@@ -615,10 +618,10 @@
       <div id="st-body"></div>
     </div>
     <div class="st-trade" id="st-trade"><button class="sell tap" data-st-trade>${ST.sell}</button><button class="buy tap" data-st-trade>${ST.buy}</button></div>`;
-  const openStock = (id) => { stockId = id; stockTab = 'overview'; stockRange = 'day'; renderStock(); go('stock'); $('st-scroll').scrollTop = 0; const ch = $('st-chart'); ch.scrollLeft = ch.scrollWidth; stDraw(); };
+  const openStock = (id) => { optMode = null; stockId = id; stockTab = 'overview'; stockRange = 'day'; renderStock(); go('stock'); $('st-scroll').scrollTop = 0; const ch = $('st-chart'); ch.scrollLeft = ch.scrollWidth; stDraw(); };
   // тап по бумаге в любом списке: Apple и Kaspi.kz открывают страницу, остальные — предупреждение
   document.addEventListener('click', (e) => {
-    const row = e.target.closest('.instr'); if (!row || row.closest('#screen-note, #screen-stock') || row.classList.contains('st-logo')) return;
+    const row = e.target.closest('.instr'); if (!row || row.closest('#screen-note, #screen-stock, #screen-options, #screen-pfdetail') || row.classList.contains('st-logo')) return;
     const nm = row.querySelector('.name'), id = nm && ST.byName[nm.textContent.trim()];
     if (id) openStock(id); else showSnack(ST.warnSnack);
   });
@@ -630,9 +633,135 @@
     if (tb) { stockTab = tb.dataset.st; renderStock(); sc.scrollTop = 0; return; } // вкладка всегда прилипла сверху — скролл ровно до неё
     const rb = e.target.closest('.st-range'); if (rb) { stockRange = rb.dataset.rg; renderStockChart(); return; }
     if (e.target.closest('#st-more')) { stockMore[stockId] = true; const mb = e.target.closest('.st-more'); $('st-news').insertAdjacentHTML('beforeend', ST.items[stockId].moreNews.map(stNewsCard).join('')); mb.remove(); return; }
-    if (e.target.closest('#st-fav')) { stockFav[stockId] = !stockFav[stockId]; $('st-fav').classList.toggle('on', stockFav[stockId]); $('st-fav').setAttribute('aria-pressed', stockFav[stockId]); showSnack(`${ST.items[stockId].navTitle} ${stockFav[stockId] ? ST.favOn : ST.favOff}`, 'success'); return; }
-    if (e.target.closest('[data-st-trade]')) showSnack(ST.tradeSnack);
+    if (e.target.closest('#st-fav')) {
+      const fk = optMode ? 'o_' + optMode : stockId, on = stockFav[fk] = !stockFav[fk];
+      $('st-fav').classList.toggle('on', on); $('st-fav').setAttribute('aria-pressed', on);
+      showSnack(optMode ? `${OPT.items[optMode].name} ${on ? 'добавлен в избранное' : 'удалён из избранного'}` : `${ST.items[stockId].navTitle} ${on ? ST.favOn : ST.favOff}`, 'success'); return;
+    }
+    if (e.target.closest('[data-op-more]')) { openSheet(renderOptSheet); return; }
+    if (e.target.closest('[data-st-trade]')) showSnack(optMode ? OPT.buySnack : ST.tradeSnack);
   });
+
+
+  // ---------- Событийные опционы (Figma 253:43255 · 253:41713) ----------
+  const OPT = window.OPT;
+  const OP_M = 48.6, OP_HM = 14, OP_L0 = 18, OP_R = 17, OP_MON = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+  const OP_W = OP_L0 + (OP_HM + 4) * OP_M + OP_R, OP_XN = OP_L0 + OP_HM * OP_M; // ширина графика и x «сегодня» (середина ноября)
+  const opFmt = (n, it) => stNum(n, it.decimals);
+  let opD = null;
+  const opHist = (o, it) => stSeries({ ticker: o.und }, 'opt', it.price / (1 + o.yearPct / 100), it.price);
+  const opFore = (o, it, key, end) => { // пунктирный сценарий от «сегодня» до даты завершения
+    const r = stRng(o.und + key), n = 16, E = it.price, ns = [0];
+    for (let i = 1; i < n; i++) ns.push(ns[i - 1] + (r() - .5));
+    const a = ns[n - 1];
+    return ns.map((v, i) => { const t = i / (n - 1); return E + (end - E) * Math.pow(t, .85) + (v - a * t) * E * .035 * Math.sin(Math.PI * t) * 1.6; });
+  };
+  const opSpark = (o, it) => { // мини-график карточки списка (Figma 253:43404)
+    const h = opHist(o, it).slice(-70), mn = Math.min(...h), mx = Math.max(...h), Y = (v) => 21 - (v - mn) / (mx - mn || 1) * 18, d0 = 254, r = stRng(o.und + 'sp');
+    const yd = Y(it.price), pts = (end) => { const q = []; for (let i = 0; i <= 4; i++) { const t = i / 4; q.push([d0 + t * 57, yd + (end - yd) * t + (i && i < 4 ? (r() - .5) * 4 : 0)]); } return 'M' + q.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join('L'); };
+    return `<svg viewBox="0 -4 311 32" width="100%" aria-hidden="true">
+      <path d="M${h.map((v, i) => `${(i / (h.length - 1) * d0).toFixed(1)} ${Y(v).toFixed(1)}`).join('L')}" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="${pts(Math.max(-2, yd - 11))}" fill="none" stroke="var(--op-up)" stroke-width="1.5" stroke-dasharray="3 3"/><path d="${pts(Math.min(25, yd + 9))}" fill="none" stroke="var(--op-dn)" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <circle cx="${d0}" cy="${yd.toFixed(1)}" r="4" fill="currentColor"/></svg>`;
+  };
+  const opCard = (id) => {
+    const o = OPT.items[id], it = ST.items[o.und];
+    return `<button class="op-li tap" data-op-open="${id}">
+      <span class="instr op-ih">${logoHtml(it.logo)}<span class="data">
+        <span class="row"><span class="name">${o.name}</span><span class="price">${stMoney(it.price, it)}</span></span>
+        <span class="row"><span class="ticker">${OPT.L.until} ${o.expiryShort}</span><span class="ticker">${OPT.L.strikeWord} ${stNum(o.strike, 0)}${NBS}$</span></span></span></span>
+      <span class="op-sp">${opSpark(o, it)}</span>
+      <span class="op-tags"><span class="op-tag">${OPT.L.tagUp} ${o.up.income}${NBS}%</span><span class="op-tag">${OPT.L.tagDn} ${o.down.income}${NBS}%</span></span></button>`;
+  };
+  $('screen-options').innerHTML = `
+    <div class="note-nav"><button class="back tap" data-back="options" aria-label="Назад"><i></i></button><b>${OPT.listTitle}</b><span class="sp"></span></div>
+    <div class="note-scroll" id="op-scroll">
+      <div class="op-head"><h1>${OPT.head}</h1><p>${OPT.sub}</p></div>
+      <div class="op-list">${OPT.order.map(opCard).join('')}</div>
+    </div>`;
+  function openOption(id) {
+    const o = OPT.items[id]; optMode = id; stockId = o.und; stockTab = 'overview';
+    renderStock(); go('stock'); $('st-scroll').scrollTop = 0; renderOptChart(o, ST.items[o.und]);
+  }
+  function optionOverview(o, it) {
+    const L = OPT.L, S = OPT.scen, news = it.news.concat(stockMore[stockId] ? it.moreNews : []), pm = (n) => stNum(n, 0) + NBS + '$';
+    const info = '<i class="ci"></i>';
+    const wide = (key, name, op) => `<div class="cond-r"><div class="cond hintable" data-hint="${key}"><div><div class="lb"><span>${name}</span>${info}</div><div class="op-v"><b>${L.income} ${op.income}${NBS}%</b><span class="tag-xs ${key === 'up' ? 'success' : 'negative'}">${L.probHint} ${op.prob.toLowerCase()}</span></div></div></div></div>`;
+    const scen = (k, sc, op, args, sign) => `<div class="section-pad"><div class="card op-card">
+        <h3>${sc.title}</h3>
+        <div class="op-r"><span>${sc.get}</span><b>${sc.cond.replace('>', '&gt;').replace('<', '&lt;')}${NBS}${pm(o.strike)}</b></div>
+        <div class="op-r"><span class="w">${sc.prob}</span><b class="${k === 'up' ? 'pos' : 'neg'}">${op.prob === 'Высокая' || op.prob === 'Низкая' ? op.prob : op.prob}</b></div>
+        <div class="op-r"><span>${sc.income}</span><b>${op.income}${NBS}%</b></div>
+        <h3>${sc.args}</h3>${args.map((a) => `<div class="op-a"><i></i><p>${a}</p></div>`).join('')}
+      </div></div>`;
+    const rows = it.metrics.map(([a, b]) => `<div class="st-row"><span>${a}</span><b>${b}</b></div>`).join('');
+    return `
+      <div class="st-card st-price">
+        <div class="st-ph"><div class="st-p">${stMoney(it.price, it)}</div>
+          <div class="st-pm"><span class="tag success">↑${NBS}${stNum(it.dayChange, it.decimals)}${NBS}${it.cur}${NBS}(${stNum(it.dayPct, 2)}${NBS}%)</span><span>${L.day}</span></div></div>
+        <div class="st-cw op-cw"><i class="gl" style="top:11px"></i><i class="gl" id="op-gs"></i><i class="gl" style="top:215px"></i><div class="st-chart" id="op-chart"></div><span class="op-chip" id="op-chip">${L.strikeChip}${NBS}${pm(o.strike)}</span></div>
+      </div>
+      <div class="cond-grid op-g">
+        <div class="cond-r"><div class="cond hintable" data-hint="end"><div><div class="lb"><span>${L.end}</span>${info}</div><b>${o.expiry}</b></div></div>
+          <div class="cond hintable" data-hint="strike"><div><div class="lb"><span>${L.strike}</span>${info}</div><b>${pm(o.strike)}</b></div></div></div>
+        ${wide('up', L.upName, o.up)}${wide('dn', L.dnName, o.down)}
+      </div>
+      <div class="section-pad"><div class="card op-card"><h3 class="b">${OPT.what.title}</h3><p>${OPT.what.text}</p><button class="txt-btn tap" data-op-more>${OPT.what.more}</button></div></div>
+      <div class="header"><h2>${OPT.scenTitle}</h2></div>
+      ${scen('up', S.up, o.up, o.argsUp)}${scen('dn', S.dn, o.down, o.argsDown)}
+      <button class="header tap" data-st-go="about"><h2>${ST.aboutTitle}</h2><img src="${A}imgChevronForwardM.svg" alt=""></button>
+      <div class="section-pad"><div class="card st-about">
+        <div class="st-ah"><div class="instr st-logo">${logoHtml(it.logo)}</div><b>${it.title}</b></div>
+        <p class="st-desc">${it.about}</p>
+        <button class="txt-btn st-read tap" data-st-go="about">${ST.readMore}</button>
+        <h3 class="st-h3">${ST.metricsTitle}</h3>${rows}
+        <div class="st-allm"><button class="more-btn tap" data-st-go="about">${ST.allMetrics}</button></div>
+      </div></div>
+      <div class="header"><h2>${ST.newsTitle}</h2></div>
+      <div class="news-cards" id="st-news">${news.map(stNewsCard).join('')}</div>
+      ${stockMore[stockId] ? '' : `<div class="st-more"><button class="ghost-btn tap" id="st-more">${ST.loadMore}</button></div>`}`;
+  }
+  // график: история слева, два пунктирных сценария справа; линия страйка и чип закреплены у правого края
+  function renderOptChart(o, it) {
+    const box = $('op-chart'); if (!box) return;
+    const hist = opHist(o, it), fu = opFore(o, it, 'fu', it.price * o.upEnd), fd = opFore(o, it, 'fd', it.price * o.dnEnd);
+    opD = { o, it, hist, fu, fd };
+    const labels = []; for (let k = -OP_HM; k <= 4; k++) labels.push(`<p style="left:${(OP_XN + k * OP_M).toFixed(1)}px">${OP_MON[((10 + k) % 12 + 12) % 12]}</p>`);
+    box.innerHTML = `<div class="op-in" style="width:${OP_W}px"><div class="st-plot op-plot">
+      <i class="gl op-gv" style="left:${OP_XN}px"></i><i class="gl op-gc" id="op-gc" style="width:${OP_XN}px"></i>
+      <svg width="${OP_W}" height="230" viewBox="0 0 ${OP_W} 230" aria-hidden="true"><path id="op-h" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+        <path id="op-fu" fill="none" stroke="var(--op-up)" stroke-width="2" stroke-dasharray="5 4"/><path id="op-fd" fill="none" stroke="var(--op-dn)" stroke-width="2" stroke-dasharray="5 4"/></svg>
+      <b class="op-dot" id="op-dot" style="left:${OP_XN}px"></b></div>
+      <div class="op-axis">${labels.join('')}</div></div>`;
+    box.scrollLeft = box.scrollWidth; opDraw(); box.onscroll = () => requestAnimationFrame(opDraw); enableDrag(box);
+  }
+  function opDraw() {
+    const box = $('op-chart'); if (!box || !opD) return;
+    const { o, it, hist, fu, fd } = opD, N = hist.length, sl = box.scrollLeft, vw = box.clientWidth, TOP = 11, BOT = 215;
+    const hx = (i) => OP_L0 + i / (N - 1) * (OP_XN - OP_L0), fx = (i) => OP_XN + i / (fu.length - 1) * (OP_W - OP_XN);
+    const vis = [o.strike, it.price];
+    hist.forEach((v, i) => { const x = hx(i); if (x >= sl - 6 && x <= sl + vw + 6) vis.push(v); });
+    fu.forEach((v, i) => { const x = fx(i); if (x >= sl - 6 && x <= sl + vw + 6) vis.push(v); });
+    fd.forEach((v, i) => { const x = fx(i); if (x >= sl - 6 && x <= sl + vw + 6) vis.push(v); });
+    const mn = Math.min(...vis), mx = Math.max(...vis), sp = (mx - mn) || 1, Y = (v) => BOT - (v - mn) / sp * (BOT - TOP);
+    const path = (arr, xf) => 'M' + arr.map((v, i) => `${xf(i).toFixed(1)} ${Y(v).toFixed(1)}`).join('L');
+    $('op-h').setAttribute('d', path(hist, hx)); $('op-fu').setAttribute('d', path(fu, fx)); $('op-fd').setAttribute('d', path(fd, fx));
+    const yn = Y(it.price); $('op-dot').style.top = yn.toFixed(1) + 'px'; $('op-gc').style.top = yn.toFixed(1) + 'px';
+    const ys = Y(o.strike); $('op-gs').style.top = ys.toFixed(1) + 'px'; $('op-chip').style.top = (ys - 12).toFixed(1) + 'px';
+  }
+  function renderOptSheet() {
+    const o = OPT.items[optMode || OPT.order[0]], it = ST.items[o.und], M = OPT.modal;
+    const ex = M.ex({ ...o, nameShort: it.navTitle, price: stNum(it.price, 0), strike: stNum(o.strike, 0) });
+    sheetEl.innerHTML = `
+      <div class="sh-head"><h2>${M.title}</h2><button class="sh-x tap" data-close-sheet aria-label="Закрыть"><img src="${A}search/cross.svg" alt=""></button></div>
+      <div class="sh-scroll op-md">
+        ${M.blocks.map(([h, ps]) => `<h3>${h}</h3>${ps.map((p) => `<p>${p}</p>`).join('')}`).join('')}
+        <h3>${M.exTitle}</h3>${ex.map(([h, p]) => `<div class="op-ex"><b>${h}</b><p>${p}</p></div>`).join('')}
+        <p class="op-note">${M.note}</p>
+      </div>
+      <div class="sh-btn"><button class="op-ok tap" data-close-sheet>${M.close}</button></div><div class="sh-safe"></div>`;
+  }
+  $('screen-options').addEventListener('click', (e) => { const c = e.target.closest('[data-op-open]'); if (c) openOption(c.dataset.opOpen); });
 
   // ---------- Снекбар (Figma 104:27393) ----------
   const snackEl = $('snack');
@@ -651,7 +780,7 @@
     snackEl.querySelector('.sn-text').textContent = text || window.ARTICLE.snackText;
     snackT.forEach(clearTimeout); snackT.forEach(clearInterval); snackT = [];
     const nav = document.querySelector('.bottomnav');
-    const buyBar = !$('screen-note').hidden ? $('note-buy') : !$('screen-stock').hidden ? $('st-trade') : null; // на странице ноты снекбар встаёт над кнопкой «Купить»
+    const buyBar = !$('screen-note').hidden ? $('note-buy') : !$('screen-advisory').hidden ? document.querySelector('.adv-buy') : !$('screen-pfdetail').hidden ? document.querySelector('.pfd-buy') : !$('screen-stock').hidden ? $('st-trade') : null; // на странице ноты снекбар встаёт над кнопкой «Купить»
     snackEl.style.bottom = ((buyBar ? buyBar.offsetHeight : nav && nav.offsetParent ? nav.offsetHeight : 0) + 8) + 'px';
     const arc = snackEl.querySelector('.arc'); snackEl.classList.toggle('ok', tone === 'success'); arc.style.stroke = tone === 'success' ? 'var(--content-success)' : 'var(--content-negative)'; arc.style.transition = 'none'; arc.style.strokeDashoffset = '0';
     snackLeft = 5; $('sn-num').textContent = snackLeft;
@@ -661,6 +790,76 @@
     snackT.push(setTimeout(hideSnack, 5000));
   }
   $('sn-act').addEventListener('click', hideSnack);
+
+  // ---------- Детальная страница портфеля (Figma 254:44992) ----------
+  const PD = window.PFD.daulet;
+  (function () {
+    const info = '<i class="ci"></i>', W = 311, H = 165, X0 = 35, gy = (v) => 94 - v * 3.9;
+    const line = (arr, col) => `<path d="M${arr.map((v, i) => `${(X0 + i / (arr.length - 1) * (W - X0)).toFixed(1)} ${gy(v).toFixed(1)}`).join('L')}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const chart = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${PD.chartTitle}">
+      ${PD.ys.map((v) => `<line x1="${X0}" x2="${W}" y1="${gy(v)}" y2="${gy(v)}" stroke="var(--bg-secondary)"/><text x="0" y="${gy(v) + 4}" class="pd-ax">${v}%</text>`).join('')}
+      ${line(PD.sp, '#2563eb')}${line(PD.pf, '#1dbe67')}
+      <text x="${X0}" y="161" class="pd-ax">${PD.from}</text><text x="${W}" y="161" text-anchor="end" class="pd-ax">${PD.to}</text></svg>`;
+    $('screen-pfdetail').innerHTML = `
+      <div class="note-nav"><button class="back tap" data-back="pfdetail" aria-label="Назад"><i></i></button><b>${PD.navTitle}</b><span class="sp"></span></div>
+      <div class="note-scroll" id="pfd-scroll">
+        <div class="adv-pad"><img class="pfd-hero" src="${A}portfolios/${PD.hero}" alt=""></div>
+        <h2 class="note-h2">${PD.paramsTitle}</h2>
+        <div class="cond-grid">
+          <div class="cond-r"><div class="cond y hintable" data-hint="pfhist"><div class="lb"><span>${PD.yieldLabel}</span>${info}</div><div class="yv"><img src="${A}note/flag-us.png" alt=""><span><b>${PD.yieldValue}</b> ${PD.yieldHint}</span></div></div></div>
+          <div class="cond-r"><div class="cond"><div><div class="lb"><span>${PD.invest[0]}</span></div><b>${PD.invest[1]}</b></div></div><div class="cond"><div><div class="lb"><span>${PD.cur[0]}</span></div><b>${PD.cur[1]}</b></div></div></div>
+        </div>
+        <div class="section-pad"><div class="card op-card"><h3>${PD.chartTitle}</h3>
+          <div class="pd-chart">${chart}</div>
+          <div class="pd-leg"><span><i style="background:#2563eb"></i>${PD.legendSp}</span><span><i style="background:#008831"></i>${PD.legendPf}</span></div>
+          <p>${PD.chartText}</p></div></div>
+        <h2 class="note-h2">${PD.ideaTitle}</h2>
+        <div class="section-pad"><div class="card op-card"><h3>${PD.ideaH}</h3><p>${PD.ideaText}</p></div></div>
+        <h2 class="note-h2">${PD.compTitle}</h2>
+        <div class="section-pad"><div class="card pd-comp">${PD.comp.map((c) => instr({ name: c.name, ticker: c.ticker, price: `${c.pct}% ${PD.per}`, delta: '', logo: c.logo })).join('')}</div></div>
+      </div>
+      <div class="note-buy pfd-buy"><button class="tap" data-pfd-buy>${PD.buy}</button></div>`;
+  })();
+
+  // ---------- Именные портфели (Figma 254:44459) ----------
+  const PF = window.PFN;
+  $('screen-namedpf').innerHTML = `
+    <div class="note-nav"><button class="back tap" data-back="namedpf" aria-label="Назад"><i></i></button><b>${PF.title}</b><span class="sp"></span></div>
+    <div class="note-scroll" id="pfn-scroll">
+      <div class="op-head"><h1>${PF.head}</h1><p>${PF.sub}</p></div>
+      ${PF.items.map((x, i) => `<div class="adv-pad"><div class="adv-exp tap" data-pfn-open="${i}">
+        <div class="ex-top"><div class="ex-bg" style="background:${x.bg}"></div>
+          <img src="${A}portfolios/${x.img}" style="${x.imgStyle}" alt="">
+          <span class="ex-cap">${x.cap}</span>
+          <div class="ex-txt"><b>${x.name}</b><div class="ex-q"><p style="width:195px;height:44px">${x.text}</p></div></div></div>
+        <div class="ex-rows">${x.rows.map(([k, v], n) => `<div class="exr"><span style="${n ? 'width:130px;flex:none' : ''}">${k}</span><b class="${n ? '' : 'pos'}"${n ? '' : ' style="flex:none;white-space:nowrap"'}>${v}</b></div>`).join('')}</div>
+      </div></div>`).join('')}
+    </div>`;
+
+  // ---------- Страница Advisory-сервиса (Figma 253:18735) ----------
+  const AD = window.ADV;
+  $('screen-advisory').innerHTML = `
+    <div class="note-nav"><button class="back tap" data-back="advisory" aria-label="Назад"><i></i></button><b>${AD.title}</b><span class="sp"></span></div>
+    <div class="note-scroll" id="adv-scroll">
+      <div class="adv-pad"><div class="adv-hero">
+        <img src="${A}advisory/exp1.png" style="height:109.94%;left:43.35%;top:5.4%;width:58.64%" alt="">
+        <img src="${A}advisory/exp2.png" style="height:107.39%;left:64.9%;top:7.39%;width:57.27%" alt="">
+        <b>${AD.hero.title}</b><span>${AD.hero.sub}</span>
+      </div></div>
+      <div class="adv-pad"><div class="adv-cell"><i class="adv-ck"></i><div><b>${AD.free.title}</b><span>${AD.free.hint}</span></div></div></div>
+      <h2 class="note-h2">${AD.servicesTitle}</h2>
+      ${AD.services.map((x) => `<div class="adv-pad"><div class="adv-cell top"><span class="adv-ic"><i style="--ic:url(${A}advisory/${x.icon}.svg)"></i></span><div><b>${x.title}</b><span class="t14">${x.text}</span></div></div></div>`).join('')}
+      <h2 class="note-h2">${AD.teamTitle}</h2>
+      ${AD.experts.map((x) => `<div class="adv-pad"><div class="adv-exp">
+        <div class="ex-top"><div class="ex-bg" style="background:${x.bg}"></div>
+          <img src="${A}advisory/${x.photo}" style="${x.photoStyle}" alt=""><img src="${A}advisory/${x.sign}" style="${x.signStyle}" alt="">
+          <div class="ex-txt"><b>${x.name}</b><div class="ex-q"><i>“</i><p style="height:${x.quoteH}px">${x.quote}</p></div></div></div>
+        <div class="ex-rows">${x.rows.map(([k, v, c], n) => `<div class="exr"><span style="${n ? `width:${n === 1 ? 164 : 130}px;flex:none` : ''}">${k}</span><b class="${c || ''}"${n ? '' : ' style="flex:none;white-space:nowrap"'}>${v}</b></div>`).join('')}</div>
+      </div></div>`).join('')}
+      <h2 class="note-h2">${AD.faqTitle}</h2>
+      <div class="note-pad accs">${AD.faq.map(accHtml).join('')}</div>
+    </div>
+    <div class="note-buy adv-buy"><button class="tap" data-adv-apply>${AD.button}</button></div>`;
 
   // ---------- Купить (Figma 98:15688) ----------
   const BY = window.BUY;
@@ -692,7 +891,7 @@
         <span class="bot"><span class="tg"><i style="--ic:url(${A}buy/crown.svg)"></i>${hero.tag}</span><b>${hero.rate}</b></span>
       </button>
     </div>
-    ${header('Продукты N1broker', false)}
+    ${header('Структурные продукты N1broker', false)}
     <div class="hscroll buy-chips">${BY.tabs.map((t) => `<button class="buy-chip tap" data-tab="${t}">${t}</button>`).join('')}</div>
     <div id="buy-products"></div>
     <div class="header sub-h"><h2>${CL.roi.title}</h2><p>${CL.roi.sub}</p></div>
@@ -1060,10 +1259,11 @@
   $('tabs').innerHTML = tabs.map(([id, t, i]) =>
     `<button class="tab tap" ${id === 'support' ? 'data-support' : id ? `data-go="${id}"` : ''}><i style="--ic:url(${A}${i}.svg)"></i><span>${t}</span></button>`).join('');
 
-  const screens = ['home', 'portfolio', 'buy', 'catalog', 'news', 'search', 'article', 'note', 'stock', 'more'];
+  const screens = ['home', 'portfolio', 'buy', 'catalog', 'news', 'search', 'article', 'note', 'stock', 'advisory', 'options', 'namedpf', 'pfdetail', 'more'];
   let articleFrom = 'home';
   let noteFrom = 'home';
   let stockPrev = 'home';
+  let advFrom = 'home', pfnFrom = 'home';
   let searchFrom = 'home';
   let current = null;
   const show = (name) => {
@@ -1074,10 +1274,13 @@
     if (name === 'article' && prev && prev !== 'article' && prev !== 'note') articleFrom = prev; // возврат с ноты не меняет источник статьи
     if (name === 'note' && prev && prev !== 'note') noteFrom = prev;
     if (name === 'stock' && prev && prev !== 'stock') stockFrom = prev;
+    if (name === 'advisory' && prev && prev !== 'advisory') { advFrom = prev; $('adv-scroll').scrollTop = 0; }
+    if (name === 'namedpf' && prev && prev !== 'namedpf' && prev !== 'pfdetail') { pfnFrom = prev; $('pfn-scroll').scrollTop = 0; }
+    if (name === 'options' && prev && prev !== 'options' && prev !== 'stock') { optFrom = prev; $('op-scroll').scrollTop = 0; }
     hideSnack(); $('art-promo').classList.remove('show');
     screens.forEach((s) => { $('screen-' + s).hidden = s !== name; });
     document.querySelectorAll('.tab').forEach((el) => el.classList.toggle('active', el.dataset.go === name));
-    document.querySelector('.phone').classList.toggle('no-tabs', name === 'news' || name === 'catalog' || name === 'article' || name === 'note' || name === 'stock');
+    document.querySelector('.phone').classList.toggle('no-tabs', name === 'news' || name === 'catalog' || name === 'article' || name === 'note' || name === 'stock' || name === 'advisory' || name === 'options' || name === 'namedpf' || name === 'pfdetail');
     document.querySelector('.phone').classList.toggle('cat-on', name === 'catalog');
     document.querySelector('.phone').classList.toggle('search-on', name === 'search');
     document.querySelector('.phone').classList.toggle('art-on', name === 'article');
@@ -1116,6 +1319,17 @@
     else if (e.target.closest('[data-snack]')) showSnack(window.NOTE.bannerSnack);
     if (e.target.closest('[data-back="note"]')) { closeHint(); go(noteFrom); }
     if (e.target.closest('[data-back="stock"]')) go(stockFrom);
+    if (e.target.closest('[data-pfn]')) { go('namedpf'); return; }
+    const po = e.target.closest('[data-pfn-open]');
+    if (po) { if (po.dataset.pfnOpen === '0') { go('pfdetail'); $('pfd-scroll').scrollTop = 0; } else showSnack(PD.onlyOne); return; }
+    if (e.target.closest('[data-back="pfdetail"]')) { go('namedpf'); return; }
+    if (e.target.closest('[data-pfd-buy]')) { showSnack(PD.buySnack); return; }
+    if (e.target.closest('[data-back="namedpf"]')) { go(pfnFrom); return; }
+    if (e.target.closest('[data-opt]')) { go('options'); return; }
+    if (e.target.closest('[data-back="options"]')) { go(optFrom); return; }
+    if (e.target.closest('[data-adv]')) { go('advisory'); $('adv-scroll').scrollTop = 0; }
+    if (e.target.closest('[data-back="advisory"]')) go(advFrom);
+    if (e.target.closest('[data-adv-apply]')) showSnack(AD.snack);
     const ng = e.target.closest('[data-nt-go]');
     if (ng) { noteTab = ng.dataset.ntGo; renderNote(); const sc = $('note-scroll'); sc.scrollTop = Math.min(sc.scrollTop, sc.querySelector('.note-hero').offsetHeight); return; }
     const nc = e.target.closest('.note-chip');

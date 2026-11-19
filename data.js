@@ -5,17 +5,10 @@ const nb = ' '; // неразрывный пробел
 window.DATA = {
   user: { initials: 'АН', name: 'Айсултан', status: 'Квал. инвестор', unread: 8 }, // DESIGN
 
-  mainBanners: [ // 1–2 DESIGN (Figma 95:10592); 3–5 ADDED по аналогии
-    { title: ['Узнайте свой', 'риск-профиль'], sub: '8 вопросов ~5 минут', bg: 'linear-gradient(180deg,#2a42ab,#01117c)',
-      img: 'imgTigerGlodBlack1.png', imgStyle: 'left:3.13%;top:3.96%;width:92.08%;height:92.08%' },
-    { title: ['Барыс'], sub: 'Надежные облигации<br>в долларах США', bg: 'linear-gradient(-13.28deg,#d64c01 37.9%,#ffc830 180.8%)',
-      img: 'imgTigerPlatinumBlue1.png', imgStyle: 'left:-36.2%;top:-2.72%;width:158%;height:105.35%' },
-    { title: ['Тулпар'], sub: 'Защита капитала<br>при росте рынка', bg: 'linear-gradient(105.7deg,#5732bd 30.4%,#0b146c 105%)',
-      img: 'imgFrame312121541.png', imgStyle: 'left:0;top:0;width:96px;height:96px;object-fit:contain' },
-    { title: ['Арыстан'], sub: 'Доход в тенге<br>до 22 % годовых', bg: 'linear-gradient(118.7deg,#1e243a 30.4%,#323775 105%)',
-      img: 'imgFrame312121542.png', imgStyle: 'left:0;top:0;width:96px;height:96px;object-fit:contain' },
-    { title: ['Академия', 'инвестиций'], sub: 'Первый урок — 10 минут', bg: 'linear-gradient(113.35deg,#2d1128 30.4%,#4a0028 105%)',
-      img: 'imgBannersBackgrounds.png', imgStyle: 'left:-71px;top:0;width:238px;height:96px' },
+  mainBanners: [ // DESIGN (Figma 253:18642, обновлено 2026-11-19): первые два пока без действия, «Жолбарыс электро» ведёт на ноту
+    { opt: true, title: ['Событийные опционы'], sub: 'Заработайте на прогнозе роста или падения бумаг', bg: 'linear-gradient(180deg,#28314d,#00083e)', imgBox: 'banner-arrows.png' },
+    { pfn: true, title: ['Именные портфели'], sub: 'Даулет Акижанов, Ильяс Нейронов и другие', bg: 'linear-gradient(-4.63deg,#700334 37.93%,#ee6568 180.76%)', imgBox: 'banner-hype.png' },
+    { note: true, title: ['Жолбарыс электро'], sub: 'Доход на росте нейросетей и энергетики', bg: 'linear-gradient(-4.64deg,#021e5e 32.85%,#9f5d4b 180.74%)', imgBox: 'banner-tiger.png' },
   ],
 
   balance: { // CHANGED: валюта дельты приведена к валюте баланса ($), см. отчёт
