@@ -200,7 +200,7 @@
       </div></button>`;
   };
   const platform = (p) => `
-    <div class="card pf-card">
+    <div class="card pf-card" data-pfi="${P.platforms.indexOf(p)}">
       <button class="pf-head tap">
         <div class="r1"><b>${p.amount}</b><span class="tag ${p.kind}">${p.delta}</span></div>
         <div class="plat"><span>${p.name}</span><i></i></div>
@@ -213,13 +213,14 @@
   $('screen-portfolio').innerHTML = `
     <div class="section-pad">
       <div class="card pf-balance">
-        <div class="top"><span class="t-h-l">${P.balance.total}</span><span class="cur-chip">${P.balance.currency}<i></i></span></div>
+        <div class="top"><span class="t-h-l">${P.balance.total}</span><button class="cur-chip tap" id="cur-chip" data-cur-open aria-label="Валюта суммы">${P.balance.currency}<i></i></button></div>
         <div class="meta"><span class="tag success">${P.balance.delta}</span><span class="t-b-s">${P.balance.period}</span></div>
       </div>
     </div>
     <div class="actions">${P.actions.map((x) => `
       <button class="abtn tap${x.primary ? ' primary' : ''}"><span class="b"><i style="--ic:url(${A}pf/${x.icon})"></i></span><span>${x.label}</span></button>`).join('')}</div>
     <div class="hscroll banners">${P.banners.map((b) => mainBanner(b)).join('')}</div>
+    <div id="pf-named"></div>
     ${P.platforms.map(platform).join('')}
     <div class="pf-news">
       ${header('Новости о ваших инструментах', false)}
@@ -605,7 +606,7 @@
     const fk = op ? 'o_' + optMode : stockId;
     $('st-fav').classList.toggle('on', !!stockFav[fk]); $('st-fav').setAttribute('aria-pressed', !!stockFav[fk]);
     $('st-title').textContent = op ? op.name : it.navTitle; $('st-sub').textContent = it.ticker;
-    $('screen-stock').classList.toggle('opt', !!op); $('st-trade').querySelector('.buy').textContent = op ? OPT.buy : ST.buy;
+    $('screen-stock').classList.toggle('opt', !!op); $('st-trade').querySelector('.buy').textContent = op ? OPT.buyUp : ST.buy; $('st-trade').querySelector('.sell').textContent = op ? OPT.buyDown : ST.sell;
     $('screen-stock').classList.toggle('book', stockTab === 'book'); $('screen-stock').classList.toggle('wbar', stockTab === 'book' || stockTab === 'divs' || stockTab === 'hist');
     $('st-body').innerHTML = stockTab === 'overview' ? (op ? optionOverview(op, it) : stockOverview(it)) : stockTab === 'book' ? stockBook(it) : stockTab === 'about' ? stockAbout(it) : stockTab === 'divs' ? stockDivs(it) : stockTab === 'hist' ? stockHist(it) : `<div class="st-empty">${ST.empty}</div>`;
     if (stockTab === 'book') { stBookCenter(); requestAnimationFrame(stBookCenter); }
@@ -621,7 +622,7 @@
   const openStock = (id) => { optMode = null; stockId = id; stockTab = 'overview'; stockRange = 'day'; renderStock(); go('stock'); $('st-scroll').scrollTop = 0; const ch = $('st-chart'); ch.scrollLeft = ch.scrollWidth; stDraw(); };
   // тап по бумаге в любом списке: Apple и Kaspi.kz открывают страницу, остальные — предупреждение
   document.addEventListener('click', (e) => {
-    const row = e.target.closest('.instr'); if (!row || row.closest('#screen-note, #screen-stock, #screen-options, #screen-pfdetail') || row.classList.contains('st-logo')) return;
+    const row = e.target.closest('.instr'); if (!row || row.closest('#screen-note, #screen-stock, #screen-options, #screen-pfdetail, .pf-named') || row.classList.contains('st-logo')) return;
     const nm = row.querySelector('.name'), id = nm && ST.byName[nm.textContent.trim()];
     if (id) openStock(id); else showSnack(ST.warnSnack);
   });
@@ -639,7 +640,8 @@
       showSnack(optMode ? `${OPT.items[optMode].name} ${on ? 'добавлен в избранное' : 'удалён из избранного'}` : `${ST.items[stockId].navTitle} ${on ? ST.favOn : ST.favOff}`, 'success'); return;
     }
     if (e.target.closest('[data-op-more]')) { openSheet(renderOptSheet); return; }
-    if (e.target.closest('[data-st-trade]')) showSnack(optMode ? OPT.buySnack : ST.tradeSnack);
+    const tr = e.target.closest('[data-st-trade]');
+    if (tr) { if (optMode) openPbuyOpt(tr.classList.contains('sell') ? 'down' : 'up'); else showSnack(ST.tradeSnack); }
   });
 
 
@@ -820,6 +822,132 @@
       </div>
       <div class="note-buy pfd-buy"><button class="tap" data-pfd-buy>${PD.buy}</button></div>`;
   })();
+
+  // ---------- Покупка портфеля (Figma 256:45982 · 256:45807 · 256:46215 · 256:46383) ----------
+  const PB = PD.pbuy;
+  $('screen-pfbuy').innerHTML = `
+    <div class="note-nav"><button class="back tap" data-back="pfbuy" aria-label="Назад"><i></i></button><b>${PB.title}</b><span class="sp"></span></div>
+    <div class="note-scroll" id="pb-scroll">
+      <div id="pb-top"></div>
+      <div class="pb-cell"><div class="pb-card">
+        <img class="pb-flag" src="${A}pbuy/flag.png" alt="">
+        <div class="pb-tx"><b>${PB.acc}</b><span class="pb-hint">${PB.accHint}</span></div>
+        </div></div>
+      <div class="pb-amount" id="pb-amount">
+        <div class="pb-lab" id="pb-lab">${PB.label}</div>
+        <label class="pb-row-in" for="pb-input"><input id="pb-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="0" aria-label="${PB.label}"><span class="pb-cur">$</span><span class="pb-mirror" id="pb-mirror" aria-hidden="true"></span></label>
+        <i class="pb-div"></i>
+        <div class="pb-hint" id="pb-hint">${PB.hint}</div>
+      </div>
+      <div class="pb-cell"><div class="pb-sum">
+        <div class="pb-sh"><span class="pb-sic"><img src="${A}pbuy/green.svg" alt=""><img class="g" src="${A}pbuy/list.svg" alt=""></span><div><div class="pb-cap">${PB.sumLabel}</div><b id="pb-sname">${PB.name}</b></div></div>
+        <div class="pb-sr"><span id="pb-qlab">${PB.qty}</span><span id="pb-qty">~</span></div>
+        <div class="pb-sr"><span>${PB.fee}</span><span id="pb-fee">~</span></div>
+        <div class="pb-sr t"><b>${PB.total}</b><b id="pb-tot">= 0 $</b></div>
+      </div></div>
+    </div>
+    <div class="note-buy pb-bar"><button class="tap" data-pb-buy>${PB.buy}</button></div>`;
+  const PO = window.PBOPT;
+  let pbMode = 'pf', pbDir = 'up'; // 'pf' — именной портфель, 'opt' — событийный опцион (рост/падение)
+  const pbMin = () => pbMode === 'opt' ? PO.min : PB.min;
+  const renderPbTop = () => {
+    const opt = pbMode === 'opt';
+    $('pb-top').innerHTML = (opt ? `
+      <div class="pb-cell pb-segw"><div class="pb-seg" role="tablist">${['down', 'up'].map((d) => `<button class="tap${d === pbDir ? ' on ' + d : ''}" data-pb-dir="${d}" role="tab">${PO.seg[d === 'up' ? 0 : 1]}</button>`).join('')}</div></div>` : '') + `
+      <div class="pb-cell"><div class="pb-card">
+        ${opt ? `<img class="pb-flag" src="${A}pbuy/nvidia48.png" alt="">` : `<span class="pb-ic"><img src="${A}pbuy/pink.svg" alt=""><img class="g" src="${A}pbuy/briefcase.svg" alt=""></span>`}
+        <div class="pb-tx"><div class="pb-row"><b>${opt ? PO.name : PB.name}</b><span>${opt ? PO.from : PB.from}</span></div>${opt ? `<span class="pb-hint">${PO.ticker}</span>` : ''}</div></div></div>`;
+    $('pb-sname').textContent = opt ? PO.sumName[pbDir] : PB.name;
+    $('pb-qlab').textContent = opt ? PO.qty : PB.qty;
+    $('pb-hint').textContent = opt ? PO.hint : PB.hint;
+  };
+  const pbIn = $('pb-input');
+  const pbFmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  const pbVal = () => Number(pbIn.value.replace(/\D/g, '')) || 0;
+  const pbPlural = (q) => Number.isInteger(q) ? (q % 10 === 1 && q % 100 !== 11 ? 'портфель' : (q % 10 >= 2 && q % 10 <= 4 && (q % 100 < 12 || q % 100 > 14) ? 'портфеля' : 'портфелей')) : 'портфеля';
+  const pbState = (s) => { // '' | empty | min | max — подпись и разделитель красные в ошибке
+    $('pb-amount').dataset.err = s ? '1' : '';
+    $('pb-lab').textContent = s === 'min' ? (pbMode === 'opt' ? PO.errMin : PB.errMin) : s === 'max' ? PB.errMax : PB.label;
+  };
+  const pbFit = () => { // ширина поля по значению, «$» остаётся рядом как лейбл
+    $('pb-mirror').textContent = pbIn.value || pbIn.placeholder;
+    pbIn.style.width = ($('pb-mirror').offsetWidth + 2) + 'px';
+    $('pb-amount').dataset.filled = pbIn.value ? '1' : '';
+  };
+  const pbMoney = (n) => { const r = Math.round(n * 100) / 100; const [i, f] = String(r).split('.'); return pbFmt(i) + (f ? ',' + f.padEnd(2, '0') : ''); };
+  const pbSum = () => { // расчёт показываем с минимальной суммы, в т.ч. сверх баланса (ошибка — на потере фокуса)
+    const v = pbVal(), ok = v >= pbMin(), fee = v * PB.commission;
+    const q = Math.round(v / PB.min * 100) / 100;
+    $('pb-qty').textContent = ok ? (pbMode === 'opt' ? `${pbMoney(v)} $` : `${String(q).replace('.', ',')} ${pbPlural(q)}`) : '~';
+    $('pb-fee').textContent = ok ? `${pbMoney(fee)} $` : '~';
+    $('pb-tot').textContent = `= ${ok ? pbMoney(v + fee) : 0} $`;
+  };
+  const pbValidate = () => { const v = pbVal(); pbState(!pbIn.value ? '' : v < pbMin() ? 'min' : v * (1 + PB.commission) > PB.balance ? 'max' : ''); };
+  pbIn.addEventListener('input', () => {
+    const d = pbIn.value.replace(/\D/g, '').replace(/^0+/, '').slice(0, 9);
+    pbIn.value = d ? pbFmt(d) : '';
+    pbState(''); pbFit(); pbSum();
+  });
+  pbIn.addEventListener('blur', pbValidate); // корректность суммы — при потере фокуса
+  pbIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') pbIn.blur(); });
+  $('screen-pfbuy').addEventListener('pointerdown', (e) => { if (document.activeElement === pbIn && !e.target.closest('.pb-row-in')) pbIn.blur(); });
+  const pbuyPress = () => { // пустое поле — только по нажатию; переход — только при корректной сумме
+    pbIn.blur();
+    const v = pbVal();
+    if (!pbIn.value) { pbState('empty'); return; }
+    pbValidate();
+    if (v >= pbMin() && v * (1 + PB.commission) <= PB.balance) openPbuyDone();
+  };
+  const DN = PD.done;
+  const renderPbDone = () => {
+    const opt = pbMode === 'opt';
+    $('screen-pfdone').innerHTML = `
+    <div class="pd-content">
+      <div class="pd-g${opt ? ' o' : ''}">${opt ? `<div class="pd-og"><img src="${A}pbuy/nvidia88.png" alt=""><span class="pd-badge"><img src="${A}pbuy/badge.svg" alt=""></span></div>` : `<img src="${A}pbuy/done.png" alt="">`}</div>
+      <div class="pd-text"><h1 class="pd-t">${DN.title}</h1><p class="pd-s">${DN.sub}</p></div>
+      <div class="pb-cell pd-c"><div class="pb-sum">
+        <div class="pb-sh"><span class="pb-sic"><img src="${A}pbuy/green.svg" alt=""><img class="g" src="${A}pbuy/list.svg" alt=""></span><div><div class="pb-cap">${DN.label}</div><b>${opt ? PO.sumName[pbDir] : PB.name}</b></div></div>
+        <div class="pb-sr"><span>${opt ? PO.qty : PB.qty}</span><span>${$('pb-qty').textContent}</span></div>
+        <div class="pb-sr"><span>${PB.fee}</span><span>${$('pb-fee').textContent}</span></div>
+        <div class="pb-sr t"><b>${PB.total}</b><b>${$('pb-tot').textContent}</b></div>
+      </div></div>
+    </div>
+    <div class="note-buy pd-b"><button class="tap pd-btn" data-pd-port>${DN.btn}</button></div>`;
+  };
+  // Именной портфель появляется на вкладке «Портфель» над площадкой ITS (Figma 256:48010 · «Портфель_С_Именным_Портфелем»)
+  let pfNamedTotal = 0;
+  const renderPfNamed = (add) => {
+    pfNamedTotal += add;
+    const delta = Math.round(pfNamedTotal * 0.021 / 1.021); // прирост +2,1 % к вложенному
+    $('pf-named').innerHTML = `<div class="card pf-card pf-named"><div class="list">${instr({ name: PB.name, price: pbMoney(pfNamedTotal) + ' $', ticker: DN.sub2, delta: `↑ ${pbMoney(delta)} $ (+2,1\u00a0%)`, logo: { src: 'pbuy/briefcase.svg', bg: '#e9407a', pad: 12 } })}</div></div>`;
+  };
+  // Опцион появляется первым среди бумаг площадки ITS (в макете строки нет — оформлена по образцу других бумаг)
+  const optHold = []; // { dir, amount }, последние покупки — в начале
+  const renderOptHold = () => {
+    const list = document.querySelector('#screen-portfolio .pf-card[data-pfi="0"] .list');
+    const base = [...list.children].filter((r) => !r.classList.contains('opt-hold'));
+    const rows = optHold.map((h) => {
+      const t = document.createElement('div');
+      t.innerHTML = instr({ name: PO.holdName[h.dir], price: pbMoney(h.amount) + ' $', ticker: `До ${window.OPT.items.NVDA.expiry}`, delta: '', logo: 'logos/nvidia-sq.png' });
+      const row = t.firstElementChild; row.classList.add('opt-hold'); return row;
+    });
+    list.replaceChildren(...rows, ...base);
+    [...list.children].forEach((r, i) => r.classList.toggle('extra', i >= 3)); // на виду по-прежнему три бумаги, остальные — под «Показать больше»
+  };
+  const openPbuyDone = () => {
+    const v = pbVal(), total = v + v * PB.commission;
+    if (pbMode === 'opt') {
+      const k = optHold.findIndex((h) => h.dir === pbDir);
+      const amount = (k >= 0 ? optHold.splice(k, 1)[0].amount : 0) + v; // в портфеле — вложенная сумма без комиссии (Figma 257:50831)
+      optHold.unshift({ dir: pbDir, amount }); renderOptHold();
+    } else renderPfNamed(total);
+    renderPbDone();
+    const s = $('screen-pfdone'); s.classList.remove('play'); void s.offsetWidth; // перезапуск анимации появления
+    go('pfdone'); s.classList.add('play');
+  };
+  const resetPbuy = () => { pbMode = 'pf'; renderPbTop(); pbIn.value = ''; pbState(''); pbSum(); $('pb-scroll').scrollTop = 0; requestAnimationFrame(pbFit); };
+  const openPbuyOpt = (dir) => { pbMode = 'opt'; pbDir = dir; renderPbTop(); pbIn.value = ''; pbState(''); pbSum(); $('pb-scroll').scrollTop = 0; go('pfbuy'); requestAnimationFrame(pbFit); };
+  renderPbTop(); pbFit();
 
   // ---------- Именные портфели (Figma 254:44459) ----------
   const PF = window.PFN;
@@ -1004,11 +1132,39 @@
   ['touchend', 'touchcancel', 'pointerup'].forEach((ev) => catScroll.addEventListener(ev, () => { setTimeout(updateCat, 60); setTimeout(updateCat, 400); }, { passive: true }));
   updateCat();
 
+  // ---------- Валюта суммы (Figma 257:50152): влияет на общий баланс, суммы и финрез площадок; цены бумаг и их финрез — нет ----------
+  const PM = window.PFMONEY;
+  let pfCur = 'USD';
+  const pmFmt = (n, d) => n.toLocaleString('ru-RU', { minimumFractionDigits: d, maximumFractionDigits: d }).replace(/\s/g, nb);
+  const pmMoney = (usd) => pfCur === 'USD' ? `${pmFmt(usd, 2)}${nb}$` : `${pmFmt(Math.round(usd * PM.rate), 0)}${nb}₸`;
+  const pmDelta = (usd, pct) => `${usd < 0 ? '↓' : '↑'}${nb}${pmMoney(Math.abs(usd))}${nb}(${pct}${nb}%)`;
+  const applyPfCur = () => {
+    $('cur-chip').innerHTML = `${pfCur === 'USD' ? '$' : '₸'}<i></i>`;
+    document.querySelector('.pf-balance .t-h-l').textContent = pmMoney(PM.total);
+    document.querySelector('.pf-balance .tag').textContent = pmDelta(PM.delta, PM.pct);
+    $('pf-nav').querySelector('.l b').textContent = pmMoney(PM.total);
+    $('pf-nav').querySelector('.r b').textContent = pmDelta(PM.delta, PM.pct);
+    PM.platforms.forEach((x, i) => {
+      const c = document.querySelector(`#screen-portfolio .pf-card[data-pfi="${i}"]`);
+      c.querySelector('.r1 b').textContent = pmMoney(x.amount);
+      c.querySelector('.r1 .tag').textContent = pmDelta(x.delta, x.pct);
+    });
+  };
+  const renderCurSheet = () => {
+    const S = PM.sheet;
+    sheetEl.innerHTML = `
+      <div class="sh-head s"><h2>${S.title}</h2><button class="sh-x tap" data-close-sheet aria-label="Закрыть"><img src="${A}search/cross.svg" alt=""></button></div>
+      <p class="sh-sub">${S.sub}</p>
+      ${[['USD', S.usd, 'pbuy/flag.png'], ['KZT', S.kzt, 'pbuy/flag-kz.png']].map(([id, name, img]) => `
+        <button class="sh-row tap" data-cur-opt="${id}"><img src="${A}${img}" alt=""><span class="tx"><b>${name}</b></span><i class="radio${pfCur === id ? ' on' : ''}"></i></button>`).join('')}
+      <div class="sh-safe"></div>`;
+  };
   // ---------- Шапка портфеля при скролле (Figma 98:16707) ----------
   // Появляется, когда блок баланса уходит под скролл: выезжает сверху, у статус-бара появляется фон; при обратном скролле — убирается.
   $('pf-nav').innerHTML = `
     <div class="l"><span class="c">Общий баланс</span><b>${P.balance.total}</b></div>
     <div class="r"><span class="c">${P.balance.period}</span><b class="up">${P.balance.delta}</b></div>`;
+  applyPfCur(); // по умолчанию выбраны доллары
   let sheetOpenFlag = false;
   // Статус-бар на телефоне красится самой страницей: фон html и верхняя безопасная зона (.phone::before) переключаются мгновенно,
   // без theme-color и без анимации (Safari сэмплирует цвет в момент перехода и может «застрять» на промежуточном).
@@ -1259,7 +1415,7 @@
   $('tabs').innerHTML = tabs.map(([id, t, i]) =>
     `<button class="tab tap" ${id === 'support' ? 'data-support' : id ? `data-go="${id}"` : ''}><i style="--ic:url(${A}${i}.svg)"></i><span>${t}</span></button>`).join('');
 
-  const screens = ['home', 'portfolio', 'buy', 'catalog', 'news', 'search', 'article', 'note', 'stock', 'advisory', 'options', 'namedpf', 'pfdetail', 'more'];
+  const screens = ['home', 'portfolio', 'buy', 'catalog', 'news', 'search', 'article', 'note', 'stock', 'advisory', 'options', 'namedpf', 'pfdetail', 'pfbuy', 'pfdone', 'more'];
   let articleFrom = 'home';
   let noteFrom = 'home';
   let stockPrev = 'home';
@@ -1280,10 +1436,10 @@
     hideSnack(); $('art-promo').classList.remove('show');
     screens.forEach((s) => { $('screen-' + s).hidden = s !== name; });
     document.querySelectorAll('.tab').forEach((el) => el.classList.toggle('active', el.dataset.go === name));
-    document.querySelector('.phone').classList.toggle('no-tabs', name === 'news' || name === 'catalog' || name === 'article' || name === 'note' || name === 'stock' || name === 'advisory' || name === 'options' || name === 'namedpf' || name === 'pfdetail');
+    document.querySelector('.phone').classList.toggle('no-tabs', name === 'news' || name === 'catalog' || name === 'article' || name === 'note' || name === 'stock' || name === 'advisory' || name === 'options' || name === 'namedpf' || name === 'pfdetail' || name === 'pfbuy' || name === 'pfdone');
     document.querySelector('.phone').classList.toggle('cat-on', name === 'catalog');
     document.querySelector('.phone').classList.toggle('search-on', name === 'search');
-    document.querySelector('.phone').classList.toggle('art-on', name === 'article');
+    document.querySelector('.phone').classList.toggle('art-on', name === 'article' || name === 'pfbuy' || name === 'pfdone'); // белый статус-бар: на экранах покупки фон белый
     if (name === 'search') { if (prev !== 'note' && prev !== 'stock') { $('srch-q').value = ''; renderSearch(); $('screen-search').scrollTop = 0; $('srch-q').focus({ preventScroll: true }); } }
     else if (prev === 'search') $('srch-q').blur();
     if (name === 'news') fitLeads();
@@ -1300,6 +1456,9 @@
     if (cc) { catType = cc.dataset.ct === catType && catType === 'fav' ? 'all' : cc.dataset.ct; renderCatalog(); }
     if (e.target.closest('#cat-plat, #cat-plat-nav')) openSheet();
     if (e.target.closest('[data-close-sheet]')) closeSheet();
+    if (e.target.closest('[data-cur-open]')) { openSheet(renderCurSheet); return; }
+    const co = e.target.closest('[data-cur-opt]');
+    if (co) { pfCur = co.dataset.curOpt; applyPfCur(); renderCurSheet(); setTimeout(closeSheet, 180); return; }
     const to = e.target.closest('[data-theme-opt]');
     if (to) {
       applyTheme(to.dataset.themeOpt);
@@ -1323,7 +1482,12 @@
     const po = e.target.closest('[data-pfn-open]');
     if (po) { if (po.dataset.pfnOpen === '0') { go('pfdetail'); $('pfd-scroll').scrollTop = 0; } else showSnack(PD.onlyOne); return; }
     if (e.target.closest('[data-back="pfdetail"]')) { go('namedpf'); return; }
-    if (e.target.closest('[data-pfd-buy]')) { showSnack(PD.buySnack); return; }
+    if (e.target.closest('[data-pfd-buy]')) { resetPbuy(); go('pfbuy'); return; }
+    if (e.target.closest('[data-back="pfbuy"]')) { $('pb-input').blur(); go(pbMode === 'opt' ? 'stock' : 'pfdetail'); return; }
+    if (e.target.closest('[data-pb-buy]')) { pbuyPress(); return; }
+    const pdir = e.target.closest('[data-pb-dir]');
+    if (pdir) { pbDir = pdir.dataset.pbDir; renderPbTop(); return; }
+    if (e.target.closest('[data-pd-port]')) { go('portfolio'); return; }
     if (e.target.closest('[data-back="namedpf"]')) { go(pfnFrom); return; }
     if (e.target.closest('[data-opt]')) { go('options'); return; }
     if (e.target.closest('[data-back="options"]')) { go(optFrom); return; }
