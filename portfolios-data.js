@@ -47,7 +47,7 @@ window.PFN = {
         { name: 'iShares Treasury', ticker: 'TLT', pct: 15, sector: 'Гос. сектор', type: 'Облигации', logo: 'logos/tlt.svg' },
         { name: 'SPDR S&P 500', ticker: 'SPY', pct: 15, sector: 'Широкий рынок', type: 'Фонды', logo: 'logos/spy.svg' },
         { name: 'Realty Income', ticker: 'O', pct: 8, sector: 'Недвижимость', type: 'Акции', logo: 'logos/o.svg' },
-        { name: 'Apple Inc.', ticker: 'AAPL', pct: 8, sector: 'IT', type: 'Акции', logo: { src: 'logos/apple.svg', bg: '#000', pad: 18, invert: true } },
+        { name: 'Apple Inc.', ticker: 'AAPL', pct: 8, sector: 'IT', type: 'Акции', logo: { src: 'logos/apple.svg', bg: '#000', pad: 11, invert: true } },
         { name: 'Exxon Mobil', ticker: 'XOM', pct: 7, sector: 'Энергетика', type: 'Акции', logo: 'logos/xom.svg' },
         { name: 'JPMorgan Chase', ticker: 'JPM', pct: 7, sector: 'Финансы', type: 'Акции', logo: 'logos/jpm.svg' },
       ],

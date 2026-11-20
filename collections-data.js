@@ -10,7 +10,7 @@
     tesla: { src: 'logos/tesla.svg', bg: '#e31937', pad: 11 },
     msft: { src: 'logos/microsoft.svg', bg: '#fff', pad: 8 },
     google: { src: 'pf/logo-google.png' },
-    nvidia: { src: 'logos/nvidia.svg', bg: '#fff', pad: 4, crop: 'nvidia' },
+    nvidia: 'logos/nvidia-sq.png',
     kap: { src: 'logos/kap.svg', bg: '#fff', pad: 3, crop: 'kap' },
     aira: { src: 'logos/airastana.png', bg: '#fff', pad: 3, crop: 'aira' },
     kcell: { src: 'logos/kcell.svg', bg: '#fff', pad: 3 },

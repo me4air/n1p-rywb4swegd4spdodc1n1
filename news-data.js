@@ -65,7 +65,7 @@
         ],
         more: [
           { src: 'Kapital.kz', time: '4 ч. назад', title: 'Банковский сектор Казахстана сохраняет высокую рентабельность', tags: [up('HSBK', '3,0'), up('KSPI', '3,1')], img: I + 'astana.jpg' },
-          { src: 'Финансовый вестник', time: '9 ч. назад', title: 'Apple: сервисы растут быстрее устройств', tags: [up('AAPL', '2,2')], thumb: { src: 'logos/apple.svg', bg: '#000', pad: 18, invert: true } },
+          { src: 'Финансовый вестник', time: '9 ч. назад', title: 'Apple: сервисы растут быстрее устройств', tags: [up('AAPL', '2,2')], thumb: { src: 'logos/apple.svg', bg: '#000', pad: 11, invert: true } },
           { src: 'Финансовый вестник', time: 'Вчера', title: 'Ставки ФРС и рынок акций: чего ждать до конца года', tags: [down('SPY', '0,3')], img: I + 'nyse.jpg' },
           { src: 'Kapital.kz', time: 'Вчера', title: 'Казатомпром: аналитики сохранили позитивный взгляд на уран', tags: [up('KZAP', '1,2')], thumb: { src: 'logos/kap.svg', bg: '#fff', pad: 3, crop: 'kap' } },
         ],
@@ -85,7 +85,7 @@
         more: [
           { src: 'Финансовый вестник', time: '6 ч. назад', title: 'Золото может скорректироваться после рекордного роста', tags: [down('GLD', '0,4')], img: I + 'gold.jpg' },
           { src: 'Kapital.kz', time: 'Вчера', title: 'Halyk Bank: ожидания по дивидендам за год', tags: [up('HSBK', '3,0')], img: I + 'astana.jpg' },
-          { src: 'Tech and Space', time: 'Вчера', title: 'Apple: прогноз выручки на праздничный квартал', tags: [up('AAPL', '2,2')], thumb: { src: 'logos/apple.svg', bg: '#000', pad: 18, invert: true } },
+          { src: 'Tech and Space', time: 'Вчера', title: 'Apple: прогноз выручки на праздничный квартал', tags: [up('AAPL', '2,2')], thumb: { src: 'logos/apple.svg', bg: '#000', pad: 11, invert: true } },
           { src: 'N1broker', time: '2 дня назад', title: 'Air Astana: прогноз по пассажиропотоку на зимний сезон', tags: [up('AIRA', '0,9')], img: I + 'airastana.jpg' },
         ],
       },

@@ -1210,15 +1210,15 @@
       ${BY.sets[BY.setTitle].map(prodCard).join('')}
       <div class="coll-more"><button class="more-btn tap" data-snack="1">Показать все</button></div></div></div>
     ${header('Событийные опционы', true, 'options')}
-    <div class="hscroll buy-ops">${OPT.order.slice(0, 2).map((id) => opCard(id, true)).join('')}</div>
+    <div class="hscroll buy-ops">${OPT.order.map((id) => opCard(id, true)).join('')}</div>
     ${header('Скринеры', false)}
     <div class="hscroll collections">${BY.screeners.map(scrCard).join('')}</div>
-    ${header('Подборки ценных бумаг', false)}
-    ${themesHtml()}
-    ${header('Компании и дивиденды', false)}
-    ${collRow(CL.dividends)}
     ${header('Портфели по отраслям', false)}
     <div class="hscroll greats">${CL.sectors.map(greatCard).join('')}</div>
+    ${header('Компании и дивиденды', false)}
+    ${collRow(CL.dividends)}
+    ${header('Подборки ценных бумаг', false)}
+    ${themesHtml()}
     ${header('Просмотрено недавно', false)}
     <div class="section-pad"><div class="card recent"><div class="list">${recentItems.map((i) => `
       <button class="instr tap">${logoHtml(i.logo)}

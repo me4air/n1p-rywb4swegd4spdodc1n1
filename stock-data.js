@@ -3,7 +3,7 @@
 (function () {
   const nb = ' ';
   const up = (t, v) => ['success', `${t} ↑${nb}${v}${nb}%`];
-  const appleThumb = { src: 'logos/apple.svg', bg: '#000', pad: 18, invert: true };
+  const appleThumb = { src: 'logos/apple.svg', bg: '#000', pad: 11, invert: true };
   window.STOCK = {
     tabs: [['overview', 'Обзор'], ['about', 'О компании'], ['book', 'Стакан'], ['divs', 'Дивиденды'], ['hist', 'История']],
     ranges: [['day', 'День'], ['week', 'Нед.'], ['month', 'Мес.'], ['m6', '6 мес.'], ['year', 'Год'], ['all', 'Все']],
