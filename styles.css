@@ -1137,9 +1137,7 @@ button.cur-chip { cursor: pointer; }
 .pb-segw { padding: 8px 16px; }
 .pb-seg { display: flex; padding: 4px; background: var(--bg-secondary); border-radius: var(--r-m); }
 .pb-seg button { flex: 1 1 0; min-width: 0; text-align: center; padding: 8px 16px; border-radius: var(--r-xs); font: 400 14px/20px Roboto; color: var(--content-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: background .2s, color .2s, box-shadow .2s; }
-.pb-seg button.on { background: var(--bg-main); font-weight: 600; box-shadow: 0 2px 2px rgba(0, 0, 0, .1), 0 0 1px rgba(0, 0, 0, .04); }
-.pb-seg button.on.up { color: var(--content-success); }
-.pb-seg button.on.down { color: var(--content-negative); }
+.pb-seg button.on { background: var(--bg-main); color: var(--content-action); font-weight: 600; box-shadow: 0 2px 2px rgba(0, 0, 0, .1), 0 0 1px rgba(0, 0, 0, .04); }
 .pb-flag[src*="nvidia"] { border-radius: 14px; }
 /* статус-экран опциона: иконка 88 с бейджем портфеля (257:49503) */
 .pd-g.o { height: auto; padding: 16px 0; }
@@ -1151,3 +1149,64 @@ button.cur-chip { cursor: pointer; }
 .opt-hold .data > .row { align-items: flex-start; }
 .opt-hold .data > .row + .row { align-items: center; }
 .opt-hold .logo { border-radius: 14px; }
+
+/* Детальная страница портфеля: вкладки, состав, информация (Figma 264:51834 · 264:52083) */
+.pfd-tabs { display: flex; gap: 8px; padding: 8px 16px; }
+.pfd-chip { flex: none; padding: 8px 12px; border-radius: var(--r-3xl); background: var(--bg-main); font: 400 14px/20px Roboto; color: var(--content-primary); white-space: nowrap; }
+.pfd-chip.selected { background: var(--bg-action-base); color: var(--content-white); }
+.pfd-h2l { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; color: var(--content-primary); }
+.pfd-h2l i { flex: none; width: 24px; height: 24px; background: var(--content-secondary); -webkit-mask: url(assets/note/chev-fwd.svg) center / contain no-repeat; mask: url(assets/note/chev-fwd.svg) center / contain no-repeat; }
+.pfd-soft { display: block; width: calc(100% - 32px); height: 40px; margin: 12px 16px 12px; border-radius: var(--r-m); background: var(--bg-action-light); color: var(--content-action); font: 600 14px/20px Roboto; text-align: center; }
+.pd-comp .pfd-soft { width: calc(100% - 0px); margin: 12px 0 12px; }
+.note-card.pfc { flex: none; width: 291px; padding: 8px 16px 0; }
+.pfc h3 { padding: 8px 0; }
+.pfc-bar { display: flex; gap: 2px; height: 21px; }
+.pfc-bar i { display: block; min-width: 6px; }
+.pfc-bar i:first-child { border-radius: 8px 0 0 8px; }
+.pfc-bar i:last-child { border-radius: 0 8px 8px 0; }
+.pfc-bar i:only-child { border-radius: 8px; }
+.pfc-leg { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 0; }
+.pfc-leg span { display: flex; align-items: center; gap: 4px; padding: 4px 0; font: 600 12px/16px Roboto; white-space: nowrap; } /* Figma 264:52592: просто текст с точкой, без чипа */
+.pfc-leg i { flex: none; width: 8px; height: 8px; border-radius: 50%; }
+.note-card.pfa { padding: 8px 0; }
+.pfa p { margin: 0 0 24px; padding: 0 16px; font: 400 16px/24px Roboto; }
+.pfa p:last-child { margin-bottom: 0; }
+#pfd-scroll .pfd-pane { padding-bottom: 16px; }
+
+/* Страница купленного портфеля (Figma 264:50966 · 264:51317 · 266:53590 · 266:53891) */
+.pfh-nav { flex: none; display: flex; align-items: center; justify-content: space-between; height: 48px; padding: 0 16px; }
+.pfh-nav .back { flex: 1; display: flex; align-items: center; height: 100%; }
+.pfh-nav .sp { flex: 1; }
+.pfh-nav .back i { display: block; width: 24px; height: 24px; background: var(--content-primary); -webkit-mask: url(assets/chevron-back.svg) center / contain no-repeat; mask: url(assets/chevron-back.svg) center / contain no-repeat; }
+.pfh-t { flex: none; display: flex; flex-direction: column; align-items: center; }
+.pfh-t b { font: 600 16px/20px Roboto; white-space: nowrap; }
+.pfh-t span { font: 400 12px/16px Roboto; color: var(--content-secondary); }
+.pfh-tabs { flex: none; padding-block: 8px; gap: 8px; }
+.pfh-chart { background: var(--bg-main); border-radius: var(--r-l); margin: 8px 0; overflow: hidden; }
+.pfh-bal { padding: 12px 16px 8px; display: flex; flex-direction: column; gap: 2px; }
+.pfh-bal > b { font: 600 32px/40px Roboto; }
+.pfh-bal > div { display: flex; align-items: center; gap: 8px; font: 400 14px/20px Roboto; color: var(--content-secondary); }
+.pfh-tag { padding: 4px 8px; border-radius: var(--r-xs); background: var(--bg-success-light); color: var(--content-success); font: 600 12px/16px Roboto; white-space: nowrap; }
+.pfh-about { padding: 8px 0 8px; }
+.pfh-ah { display: flex; align-items: center; gap: 16px; padding: 12px 16px 8px; }
+.pfh-ah b { font: 600 18px/28px Roboto; }
+.pfh-ic { position: relative; flex: none; width: 48px; height: 48px; }
+.pfh-ic > img:first-child { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pfh-ic .g { position: absolute; left: 12px; top: 12px; width: 24px; height: 24px; }
+.pfh-about > p { margin: 0; padding: 0 16px; font: 400 16px/24px Roboto; }
+.pfh-about .pfd-soft { width: calc(100% - 32px); margin: 12px 16px 8px; }
+.pfh-out { color: var(--content-negative); }
+.pfh-q { color: var(--content-secondary) !important; }
+.pfh-bar { flex: none; display: flex; gap: 8px; padding: 12px 16px calc(12px + var(--home)); background: var(--bg-primary); }
+.pfh-bar button { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; height: 56px; border-radius: var(--r-m); font: 600 16px/20px Roboto; color: var(--content-white); }
+.pfh-sell { background: var(--bg-action-neutral); color: var(--content-primary-inverted) !important; }
+.pfh-buy { background: var(--bg-success); }
+#screen-pfheld .pfd-pane { padding-bottom: 16px; }
+#screen-pfheld .instr .name { white-space: normal; overflow: visible; text-overflow: clip; }
+#screen-pfheld .instr .data > .row { align-items: flex-start; }
+#screen-pfheld .instr .data > .row + .row { align-items: center; }
+
+.pfh-cw { margin-top: 0; }
+.pfh-bal.scrub > div > span:not(#pfh-when) { display: none; }
+#pfh-when { display: none; }
+.pfh-bal.scrub #pfh-when { display: block; }

@@ -802,10 +802,34 @@
       ${PD.ys.map((v) => `<line x1="${X0}" x2="${W}" y1="${gy(v)}" y2="${gy(v)}" stroke="var(--bg-secondary)"/><text x="0" y="${gy(v) + 4}" class="pd-ax">${v}%</text>`).join('')}
       ${line(PD.sp, '#2563eb')}${line(PD.pf, '#1dbe67')}
       <text x="${X0}" y="161" class="pd-ax">${PD.from}</text><text x="${W}" y="161" text-anchor="end" class="pd-ax">${PD.to}</text></svg>`;
-    $('screen-pfdetail').innerHTML = `
-      <div class="note-nav"><button class="back tap" data-back="pfdetail" aria-label="Назад"><i></i></button><b>${PD.navTitle}</b><span class="sp"></span></div>
-      <div class="note-scroll" id="pfd-scroll">
-        <div class="adv-pad"><img class="pfd-hero" src="${A}portfolios/${PD.hero}" alt=""></div>
+    const IN = PD.info, pdRow = (c) => instr({ name: c.name, ticker: c.ticker, price: `${c.pct}% ${PD.per}`, delta: '', logo: c.logo });
+    const byPct = [...PD.comp].sort((x, y) => y.pct - x.pct);
+    const COLORS = ['#8e5aff', '#00b5ad', '#e9407a', '#5c6bc0', '#ffb300']; // Figma: additional/purple · teal · magenta · indigo · amber
+    // Доли по признаку: если групп больше, чем помещается на полосе, самые маленькие объединяются в «Другое»
+    const group = (key) => {
+      const m = new Map(); PD.comp.forEach((c) => m.set(c[key], (m.get(c[key]) || 0) + c.pct));
+      let g = [...m].sort((x, y) => y[1] - x[1]);
+      if (g.length > PD.maxSeg) g = [...g.slice(0, PD.maxSeg - 1), [PD.other, g.slice(PD.maxSeg - 1).reduce((s, x) => s + x[1], 0)]];
+      return g;
+    };
+    const bar = (g) => g.map(([, p], i) => `<i style="flex:${p} 1 0;background:${COLORS[i]}"></i>`).join('');
+    const leg = (g) => g.map(([n, p], i) => `<span><i style="background:${COLORS[i]}"></i>${n} ${p}%</span>`).join('');
+    const share = (key) => { const g = group(key); return `<div class="note-card pfc" data-key="${key}"><h3>${PD.byTitles[key]}</h3>
+      <div class="pfc-bar">${bar(g)}</div><div class="pfc-leg">${leg(g)}</div></div>`; };
+    // Правило: легенда — не больше трёх строк. Если не умещается, самые маленькие доли уходят в «Другое» (нужна вёрстка, поэтому вызывается при показе вкладки)
+    const fitShares = () => document.querySelectorAll('#screen-pfdetail .pfc').forEach((card) => {
+      const lg = card.querySelector('.pfc-leg'), rows = () => new Set([...lg.children].map((c) => c.offsetTop)).size;
+      let g = group(card.dataset.key);
+      const draw = () => { card.querySelector('.pfc-bar').innerHTML = bar(g); lg.innerHTML = leg(g); };
+      draw();
+      while (rows() > PD.legendRows) {
+        const named = g.filter(([n]) => n !== PD.other);
+        if (named.length <= 1) break;
+        const last = named.pop(), other = (g.find(([n]) => n === PD.other) || [0, 0])[1] + last[1];
+        g = [...named, [PD.other, other]]; draw();
+      }
+    });
+    const panes = [`
         <h2 class="note-h2">${PD.paramsTitle}</h2>
         <div class="cond-grid">
           <div class="cond-r"><div class="cond y hintable" data-hint="pfhist"><div class="lb"><span>${PD.yieldLabel}</span>${info}</div><div class="yv"><img src="${A}note/flag-us.png" alt=""><span><b>${PD.yieldValue}</b> ${PD.yieldHint}</span></div></div></div>
@@ -817,10 +841,41 @@
           <p>${PD.chartText}</p></div></div>
         <h2 class="note-h2">${PD.ideaTitle}</h2>
         <div class="section-pad"><div class="card op-card"><h3>${PD.ideaH}</h3><p>${PD.ideaText}</p></div></div>
-        <h2 class="note-h2">${PD.compTitle}</h2>
-        <div class="section-pad"><div class="card pd-comp">${PD.comp.map((c) => instr({ name: c.name, ticker: c.ticker, price: `${c.pct}% ${PD.per}`, delta: '', logo: c.logo })).join('')}</div></div>
+        <button class="note-h2 pfd-h2l tap" data-pfd-tab="1">${PD.compTitle}<i></i></button>
+        <div class="section-pad"><div class="card pd-comp">${byPct.slice(0, PD.compTop).map(pdRow).join('')}<button class="pfd-soft tap" data-pfd-tab="1">${PD.compAll}</button></div></div>`,
+      `
+        <div class="note-hs hscroll">${share('sector')}${share('type')}</div>
+        <h2 class="note-h2">${PD.papersTitle}</h2>
+        <div class="section-pad"><div class="card pd-comp">${byPct.map(pdRow).join('')}</div></div>`,
+      `
+        <h2 class="note-h2">${IN.authorTitle}</h2>
+        <div class="note-pad"><div class="note-card pfa"><h3>${IN.authorName}</h3>${IN.authorText.map((p) => `<p>${p}</p>`).join('')}</div></div>
+        <h2 class="note-h2">${IN.paramsTitle}</h2>
+        <div class="note-pad"><div class="note-card prm">${IN.params.map(([k, v]) => `<div class="prm-row"><span>${k}</span><b>${v.replace('{n}', PD.comp.length)}</b></div>`).join('')}</div></div>
+        <h2 class="note-h2">${IN.docsTitle}</h2>
+        ${IN.docs.map((d) => `<div class="note-pad"><button class="note-doc tap" data-doc><img src="${A}note/document.svg" alt=""><b>${d}</b><img src="${A}note/chev-fwd.svg" alt=""></button></div>`).join('')}
+        <h2 class="note-h2">${IN.faqTitle}</h2>
+        <div class="note-pad accs">${IN.faq.map(accHtml).join('')}</div>`];
+    $('screen-pfdetail').innerHTML = `
+      <div class="note-nav"><button class="back tap" data-back="pfdetail" aria-label="Назад"><i></i></button><b>${PD.navTitle}</b><span class="sp"></span></div>
+      <div class="note-scroll" id="pfd-scroll">
+        <div class="adv-pad"><img class="pfd-hero" src="${A}portfolios/${PD.hero}" alt=""></div>
+        <div class="pfd-tabs" role="tablist">${PD.tabs.map((t, i) => `<button class="pfd-chip tap${i ? '' : ' selected'}" data-pfd-tab="${i}" role="tab">${t}</button>`).join('')}</div>
+        ${panes.map((h, i) => `<div class="pfd-pane" data-pfd-pane="${i}"${i ? ' hidden' : ''}>${h}</div>`).join('')}
       </div>
       <div class="note-buy pfd-buy"><button class="tap" data-pfd-buy>${PD.buy}</button></div>`;
+    // Переключение вкладок: чипы выделяются, панель меняется; если страницу уже прокрутили ниже шапки — показываем начало вкладки
+    $('screen-pfdetail').addEventListener('click', (e) => {
+      const t = e.target.closest('[data-pfd-tab]'); if (!t) return;
+      const i = +t.dataset.pfdTab, sc = $('pfd-scroll'), st0 = sc.scrollTop;
+      document.querySelectorAll('#screen-pfdetail .pfd-chip').forEach((c, k) => { c.classList.toggle('selected', k === i); c.setAttribute('aria-selected', k === i); });
+      document.querySelectorAll('#screen-pfdetail .pfd-pane').forEach((p, k) => { p.hidden = k !== i; });
+      if (i === 1) fitShares();
+      const tb = document.querySelector('#screen-pfdetail .pfd-tabs'); sc.scrollTop = 0;
+      const top = Math.round(tb.getBoundingClientRect().top - sc.getBoundingClientRect().top); // положение чипов в начале прокрутки
+      sc.scrollTop = Math.min(st0, sc.scrollHeight);
+      if (st0 > top || t.classList.contains('pfd-soft') || t.classList.contains('pfd-h2l')) sc.scrollTop = Math.max(0, top);
+    });
   })();
 
   // ---------- Покупка портфеля (Figma 256:45982 · 256:45807 · 256:46215 · 256:46383) ----------
@@ -856,7 +911,7 @@
       <div class="pb-cell pb-segw"><div class="pb-seg" role="tablist">${['down', 'up'].map((d) => `<button class="tap${d === pbDir ? ' on ' + d : ''}" data-pb-dir="${d}" role="tab">${PO.seg[d === 'up' ? 0 : 1]}</button>`).join('')}</div></div>` : '') + `
       <div class="pb-cell"><div class="pb-card">
         ${opt ? `<img class="pb-flag" src="${A}pbuy/nvidia48.png" alt="">` : `<span class="pb-ic"><img src="${A}pbuy/pink.svg" alt=""><img class="g" src="${A}pbuy/briefcase.svg" alt=""></span>`}
-        <div class="pb-tx"><div class="pb-row"><b>${opt ? PO.name : PB.name}</b><span>${opt ? PO.from : PB.from}</span></div>${opt ? `<span class="pb-hint">${PO.ticker}</span>` : ''}</div></div></div>`;
+        <div class="pb-tx"><div class="pb-row"><b id="pb-iname">${opt ? PO.sumName[pbDir] : PB.name}</b><span>${opt ? PO.from : PB.from}</span></div>${opt ? `<span class="pb-hint">${PO.ticker}</span>` : ''}</div></div></div>`;
     $('pb-sname').textContent = opt ? PO.sumName[pbDir] : PB.name;
     $('pb-qlab').textContent = opt ? PO.qty : PB.qty;
     $('pb-hint').textContent = opt ? PO.hint : PB.hint;
@@ -916,11 +971,123 @@
   };
   // Именной портфель появляется на вкладке «Портфель» над площадкой ITS (Figma 256:48010 · «Портфель_С_Именным_Портфелем»)
   let pfNamedTotal = 0;
-  const renderPfNamed = (add) => {
+  const PF_GAIN = 0.021; // прирост за время владения +2,1 % к вложенной сумме (без комиссии)
+  const renderPfNamed = (add) => { // add — вложенная сумма без комиссии; в портфеле показывается стоимость = вложено + прирост
     pfNamedTotal += add;
-    const delta = Math.round(pfNamedTotal * 0.021 / 1.021); // прирост +2,1 % к вложенному
-    $('pf-named').innerHTML = `<div class="card pf-card pf-named"><div class="list">${instr({ name: PB.name, price: pbMoney(pfNamedTotal) + ' $', ticker: DN.sub2, delta: `↑ ${pbMoney(delta)} $ (+2,1\u00a0%)`, logo: { src: 'pbuy/briefcase.svg', bg: '#e9407a', pad: 12 } })}</div></div>`;
+    const value = pfNamedTotal * (1 + PF_GAIN), delta = pfNamedTotal * PF_GAIN;
+    $('pf-named').innerHTML = `<div class="card pf-card pf-named"><div class="list">${instr({ name: PB.name, price: pbMoney(value) + ' $', ticker: DN.sub2, delta: `↑ ${pbMoney(delta)} $ (+2,1\u00a0%)`, logo: { src: 'pbuy/briefcase.svg', bg: '#e9407a', pad: 12 } })}</div></div>`;
   };
+  // ---------- Страница купленного портфеля (Figma 264:50966 · 264:51317 · 266:53590 · 266:53891) ----------
+  const HD = PD.held, pfHist = []; // { total, qty } — покупки, новые в начале
+  const fmt2 = (n) => { const [i, f] = Math.abs(n).toFixed(2).split('.'); return `${pbFmt(i)},${f}`; };
+  let pfhTab = 0;
+  // Стоимость и прирост по бумагам считаются от баланса так, чтобы в сумме давать ровно баланс и общий прирост
+  const heldData = () => {
+    const value = pfNamedTotal * (1 + PF_GAIN), delta = pfNamedTotal * PF_GAIN, c100 = (x) => Math.round(x * 100) / 100;
+    const rows = [...PD.comp].sort((x, y) => y.pct - x.pct).map((c) => { const val = c.pct / 100 * value, g = HD.growth[c.ticker]; return { c, val, raw: val * g / (100 + g) }; });
+    const k = delta / rows.reduce((s, r) => s + r.raw, 0);
+    rows.forEach((r) => { r.val = c100(r.val); r.d = c100(r.raw * k); });
+    rows[0].val = c100(rows[0].val + value - rows.reduce((s, r) => s + r.val, 0));
+    rows[0].d = c100(rows[0].d + delta - rows.reduce((s, r) => s + r.d, 0));
+    return { value, delta, rows };
+  };
+  const heldRow = ({ c, val, d }) => {
+    const neg = d < 0, pct = Math.abs(d / (val - d) * 100).toFixed(1).replace('.', ',');
+    return instr({ name: c.name, price: `${fmt2(val)} $`, ticker: `${c.pct}% ${PD.per}`, neg, logo: c.logo, delta: `${neg ? '↓' : '↑'} ${fmt2(d)} $ (${neg ? '−' : '+'}${pct}\u00a0%)` });
+  };
+  // ---- График баланса (как у ценной бумаги, без переключения периодов): начало окна — вложенная сумма, конец — текущий баланс; влево можно подтянуть историю ----
+  let pfV = [], pfY = (y) => y, pfEnd = 0;
+  const pfWhen = (i) => { // «сегодня» — день покупки; историю до окна показываем по предыдущей сессии
+    const [n, pre] = ST_GEN.day, d = new Date(2026, 10, 19, 16, 0), pad = (x) => String(x).padStart(2, '0');
+    if (i < pre) { do d.setDate(d.getDate() - 1); while (d.getDay() % 6 === 0); const h = 14 + i * 2 / (pre - 1); d.setHours(Math.floor(h), Math.round((h % 1) * 60)); }
+    else { const h = 9 + (i - pre) * 7 / (n - 1); d.setHours(Math.floor(h), Math.round((h % 1) * 60)); }
+    return `${d.getDate()}${NBS}${ST_MON[d.getMonth()]}${NBS}в${NBS}${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+  const pfDraw = () => {
+    const box = $('pfh-chart'); if (!box || !pfV.length) return;
+    const N = pfV.length, f0 = box.scrollLeft / box.scrollWidth, f1 = (box.scrollLeft + box.clientWidth) / box.scrollWidth;
+    const i0 = Math.max(0, Math.floor(f0 * 1000 / ST_XW * (N - 1)) - 1), i1 = Math.min(N - 1, Math.ceil(f1 * 1000 / ST_XW * (N - 1)) + 1);
+    const win = pfV.slice(i0, i1 + 1), mn = Math.min(...win), mx = Math.max(...win), sp = (mx - mn) || 1;
+    const Y = (y) => ST_BOT - (y - mn) / sp * (ST_BOT - ST_TOP); pfY = Y;
+    $('pfh-path').setAttribute('d', 'M' + pfV.map((y, i) => `${(i / (N - 1) * ST_XW).toFixed(1)} ${Y(y).toFixed(1)}`).join('L'));
+    $('pfh-dot').style.top = Y(pfV[N - 1]).toFixed(1) + 'px';
+    $('pfh-gm').style.top = Math.min(ST_BOT, Math.max(ST_TOP, Y(pfV[N - 1]))).toFixed(1) + 'px';
+  };
+  const pfScrub = (clientX) => {
+    const box = $('pfh-chart'), N = pfV.length, rc = box.getBoundingClientRect();
+    const fr = Math.min(1, Math.max(0, (clientX - rc.left) / rc.width)), f = (box.scrollLeft + fr * box.clientWidth) / box.scrollWidth * 1000 / ST_XW;
+    const i = Math.min(N - 1, Math.max(0, Math.round(f * (N - 1)))), y = pfV[i], cur = $('pfh-cur'), dot = $('pfh-cdot');
+    cur.style.left = dot.style.left = (i / (N - 1) * ST_XW / 10) + '%'; dot.style.top = pfY(y) + 'px'; cur.style.display = dot.style.display = 'block';
+    $('pfh-bal').textContent = `${fmt2(y)} $`; $('pfh-when').textContent = pfWhen(i); $('pfh-bal').closest('.pfh-bal').classList.add('scrub');
+  };
+  const pfScrubEnd = () => {
+    const c = $('pfh-cur'); if (!c) return;
+    c.style.display = $('pfh-cdot').style.display = 'none'; $('pfh-bal').textContent = `${fmt2(pfEnd)} $`; $('pfh-bal').closest('.pfh-bal').classList.remove('scrub');
+  };
+  const pfChartPointer = (el) => {
+    let timer = 0, on = false, down = false, sx = 0, sl = 0, kind = '';
+    const end = () => { clearTimeout(timer); if (on) pfScrubEnd(); on = down = false; el.classList.remove('dragging'); };
+    el.addEventListener('pointerdown', (e) => { down = true; on = false; sx = e.clientX; sl = el.scrollLeft; kind = e.pointerType; clearTimeout(timer); timer = setTimeout(() => { on = true; pfScrub(sx); }, 220); });
+    window.addEventListener('pointermove', (e) => {
+      if (!down || !el.isConnected) return;
+      if (on) { pfScrub(e.clientX); return; }
+      if (Math.abs(e.clientX - sx) > (kind === 'mouse' ? 4 : 8)) { clearTimeout(timer); if (kind === 'mouse') { el.classList.add('dragging'); el.scrollLeft = sl - (e.clientX - sx); } }
+    });
+    window.addEventListener('pointerup', end); window.addEventListener('pointercancel', end);
+    el.addEventListener('touchmove', (e) => { if (on) e.preventDefault(); }, { passive: false });
+    el.addEventListener('contextmenu', (e) => e.preventDefault());
+  };
+  const pfChartFit = () => { const box = $('pfh-chart'); if (box) { box.scrollLeft = box.scrollWidth; pfDraw(); } };
+  const pfChartInit = (end) => {
+    const start = end - pfNamedTotal * PF_GAIN, [n, pre] = ST_GEN.day, box = $('pfh-chart'); pfEnd = end;
+    pfV = stSeries({ ticker: 'PFH' + PD.navTitle }, 'day', start, end);
+    box.innerHTML = `<div class="st-in" style="width:${((n + pre) / n * 100).toFixed(1)}%"><div class="st-plot">
+      <svg viewBox="0 0 1000 230" preserveAspectRatio="none" aria-hidden="true"><path id="pfh-path" d="" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>
+      <b class="st-dot" id="pfh-dot" style="left:98.5%"></b><i class="st-cur" id="pfh-cur"></i><b class="st-cdot" id="pfh-cdot"></b></div>
+      <div class="st-axis">${ST.axisPre.day.map((t) => `<p class="pre">${t}</p>`).join('')}${HD.hours.map((t) => `<p>${t}</p>`).join('')}</div></div>`;
+    box.onscroll = () => requestAnimationFrame(pfDraw); pfChartPointer(box); pfChartFit();
+  };
+  const renderHeld = () => {
+    const IN = PD.info, HDt = heldData(), delta = HDt.delta;
+    const panes = [`
+      <div class="pfh-chart">
+        <div class="pfh-bal"><b id="pfh-bal">${fmt2(HDt.value)} $</b><div><span class="pfh-tag">↑ ${fmt2(delta)} $ (2,1 %)</span><span>${HD.since}</span><span id="pfh-when"></span></div></div>
+        <div class="st-cw pfh-cw"><i class="gl" style="top:12px"></i><i class="gl" id="pfh-gm"></i><i class="gl" style="top:214px"></i><div class="st-chart" id="pfh-chart"></div></div>
+      </div>
+      <button class="note-h2 pfd-h2l tap" data-pfh-tab="1">${HD.papersTitle}<i></i></button>
+      <div class="section-pad"><div class="card pd-comp">${HDt.rows.slice(0, 3).map(heldRow).join('')}<button class="pfd-soft tap" data-pfh-tab="1">${HD.showAll}</button></div></div>
+      <button class="note-h2 pfd-h2l tap" data-pfh-tab="2">${HD.aboutTitle}<i></i></button>
+      <div class="section-pad"><div class="card pfh-about"><div class="pfh-ah"><span class="pfh-ic"><img src="${A}pbuy/pink.svg" alt=""><img class="g" src="${A}pbuy/briefcase.svg" alt=""></span><b>${PD.navTitle}</b></div>
+        <p>${PD.ideaText}</p><button class="pfd-soft tap" data-pfh-tab="2">${HD.more}</button></div></div>`,
+      `<div class="section-pad"><div class="card pd-comp">${HDt.rows.map(heldRow).join('')}</div></div>`,
+      `<h2 class="note-h2">${PD.ideaTitle}</h2>
+      <div class="section-pad"><div class="card op-card"><h3>${PD.ideaH}</h3><p>${PD.ideaText}</p></div></div>
+      <h2 class="note-h2">${IN.authorTitle}</h2>
+      <div class="note-pad"><div class="note-card pfa"><h3>${IN.authorName}</h3>${IN.authorText.map((p) => `<p>${p}</p>`).join('')}</div></div>
+      <h2 class="note-h2">${IN.paramsTitle}</h2>
+      <div class="note-pad"><div class="note-card prm">${IN.params.map(([k, v]) => `<div class="prm-row"><span>${k}</span><b>${v.replace('{n}', PD.comp.length)}</b></div>`).join('')}</div></div>
+      <h2 class="note-h2">${IN.faqTitle}</h2>
+      <div class="note-pad accs">${IN.faq.map(accHtml).join('')}</div>`,
+      `<h2 class="note-h2">${HD.date}</h2>
+      <div class="section-pad"><div class="card pd-comp">${pfHist.map((h) => instr({ name: PD.navTitle, price: `−${pbMoney(h.total)} $`, ticker: HD.histOp, delta: `${String(h.qty).replace('.', ',')} ${HD.histUnit}`, neg: true, logo: { src: 'pbuy/briefcase.svg', bg: '#e9407a', pad: 12 } }).replace('class="delta neg"', 'class="delta pfh-q"').replace('class="price"', 'class="price pfh-out"')).join('')}</div></div>`];
+    $('screen-pfheld').innerHTML = `
+      <div class="pfh-nav"><button class="back tap" data-back="pfheld" aria-label="Назад"><i></i></button><div class="pfh-t"><b>${PD.navTitle}</b><span>${HD.sub}</span></div><span class="sp"></span></div>
+      <div class="hscroll chiprow pfh-tabs" role="tablist">${HD.tabs.map((t, i) => `<button class="pfd-chip tap${i === pfhTab ? ' selected' : ''}" data-pfh-tab="${i}" role="tab">${t}</button>`).join('')}</div>
+      <div class="note-scroll" id="pfh-scroll">${panes.map((h, i) => `<div class="pfd-pane" data-pfh-pane="${i}"${i === pfhTab ? '' : ' hidden'}>${h}</div>`).join('')}</div>
+      <div class="pfh-bar"><button class="tap pfh-sell" data-pfh-sell>${HD.sell}</button><button class="tap pfh-buy" data-pfh-buy>${HD.buy}</button></div>`;
+    enableDrag($('screen-pfheld').querySelector('.hscroll'));
+    pfChartInit(HDt.value);
+  };
+  const setPfhTab = (i) => {
+    pfhTab = i;
+    document.querySelectorAll('#screen-pfheld .pfd-chip').forEach((c, k) => { c.classList.toggle('selected', k === i); c.setAttribute('aria-selected', k === i); });
+    document.querySelectorAll('#screen-pfheld .pfd-pane').forEach((p, k) => { p.hidden = k !== i; });
+    $('pfh-scroll').scrollTop = 0; if (i === 0) pfChartFit();
+    const c = document.querySelector('#screen-pfheld .pfd-chip.selected'), row = c.parentElement; // выбранный чип — в зоне видимости
+    row.scrollTo({ left: c.offsetLeft - 16, behavior: 'smooth' });
+  };
+  const openHeld = () => { pfhTab = 0; renderHeld(); go('pfheld'); };
+  let pbFromHeld = false;
   // Опцион появляется первым среди бумаг площадки ITS (в макете строки нет — оформлена по образцу других бумаг)
   const optHold = []; // { dir, amount }, последние покупки — в начале
   const renderOptHold = () => {
@@ -940,7 +1107,7 @@
       const k = optHold.findIndex((h) => h.dir === pbDir);
       const amount = (k >= 0 ? optHold.splice(k, 1)[0].amount : 0) + v; // в портфеле — вложенная сумма без комиссии (Figma 257:50831)
       optHold.unshift({ dir: pbDir, amount }); renderOptHold();
-    } else renderPfNamed(total);
+    } else { renderPfNamed(v); pfHist.unshift({ total, qty: Math.round(v / PB.min * 100) / 100 }); }
     renderPbDone();
     const s = $('screen-pfdone'); s.classList.remove('play'); void s.offsetWidth; // перезапуск анимации появления
     go('pfdone'); s.classList.add('play');
@@ -1415,7 +1582,7 @@
   $('tabs').innerHTML = tabs.map(([id, t, i]) =>
     `<button class="tab tap" ${id === 'support' ? 'data-support' : id ? `data-go="${id}"` : ''}><i style="--ic:url(${A}${i}.svg)"></i><span>${t}</span></button>`).join('');
 
-  const screens = ['home', 'portfolio', 'buy', 'catalog', 'news', 'search', 'article', 'note', 'stock', 'advisory', 'options', 'namedpf', 'pfdetail', 'pfbuy', 'pfdone', 'more'];
+  const screens = ['home', 'portfolio', 'buy', 'catalog', 'news', 'search', 'article', 'note', 'stock', 'advisory', 'options', 'namedpf', 'pfdetail', 'pfbuy', 'pfdone', 'pfheld', 'more'];
   let articleFrom = 'home';
   let noteFrom = 'home';
   let stockPrev = 'home';
@@ -1429,14 +1596,14 @@
     if (name === 'search' && prev && prev !== 'search' && prev !== 'note' && prev !== 'stock') searchFrom = prev; // поиск — поверх экрана-источника; возврат с ноты его не меняет
     if (name === 'article' && prev && prev !== 'article' && prev !== 'note') articleFrom = prev; // возврат с ноты не меняет источник статьи
     if (name === 'note' && prev && prev !== 'note') noteFrom = prev;
-    if (name === 'stock' && prev && prev !== 'stock') stockFrom = prev;
+    if (name === 'stock' && prev && prev !== 'stock' && prev !== 'pfbuy') stockFrom = prev; // возврат с экрана покупки не меняет источник (иначе «назад» зацикливается)
     if (name === 'advisory' && prev && prev !== 'advisory') { advFrom = prev; $('adv-scroll').scrollTop = 0; }
     if (name === 'namedpf' && prev && prev !== 'namedpf' && prev !== 'pfdetail') { pfnFrom = prev; $('pfn-scroll').scrollTop = 0; }
     if (name === 'options' && prev && prev !== 'options' && prev !== 'stock') { optFrom = prev; $('op-scroll').scrollTop = 0; }
     hideSnack(); $('art-promo').classList.remove('show');
     screens.forEach((s) => { $('screen-' + s).hidden = s !== name; });
     document.querySelectorAll('.tab').forEach((el) => el.classList.toggle('active', el.dataset.go === name));
-    document.querySelector('.phone').classList.toggle('no-tabs', name === 'news' || name === 'catalog' || name === 'article' || name === 'note' || name === 'stock' || name === 'advisory' || name === 'options' || name === 'namedpf' || name === 'pfdetail' || name === 'pfbuy' || name === 'pfdone');
+    document.querySelector('.phone').classList.toggle('no-tabs', name === 'news' || name === 'catalog' || name === 'article' || name === 'note' || name === 'stock' || name === 'advisory' || name === 'options' || name === 'namedpf' || name === 'pfdetail' || name === 'pfbuy' || name === 'pfdone' || name === 'pfheld');
     document.querySelector('.phone').classList.toggle('cat-on', name === 'catalog');
     document.querySelector('.phone').classList.toggle('search-on', name === 'search');
     document.querySelector('.phone').classList.toggle('art-on', name === 'article' || name === 'pfbuy' || name === 'pfdone'); // белый статус-бар: на экранах покупки фон белый
@@ -1472,7 +1639,7 @@
     if (bc) { buyTab = bc.dataset.tab; renderBuyProducts(); }
     if (e.target.closest('[data-back="search"]')) go(searchFrom);
     const nw = e.target.closest('[data-news]');
-    if (nw) { if (window.ARTICLE[nw.dataset.news]) { renderArticle(nw.dataset.news); go('article'); } else showSnack(); }
+    if (nw) { if (window.ARTICLE[nw.dataset.news]) { renderArticle(nw.dataset.news); go('article'); $('art-scroll').scrollTop = 0; /* в скрытом экране сброс не срабатывает — повторяем после показа */ } else showSnack(); }
     if (e.target.closest('[data-back="article"]')) go(articleFrom);
     if (e.target.closest('[data-note]')) { noteTab = 'overview'; renderNote(); go('note'); $('note-scroll').scrollTop = 0; }
     else if (e.target.closest('[data-snack]')) showSnack(window.NOTE.bannerSnack);
@@ -1480,10 +1647,15 @@
     if (e.target.closest('[data-back="stock"]')) go(stockFrom);
     if (e.target.closest('[data-pfn]')) { go('namedpf'); return; }
     const po = e.target.closest('[data-pfn-open]');
-    if (po) { if (po.dataset.pfnOpen === '0') { go('pfdetail'); $('pfd-scroll').scrollTop = 0; } else showSnack(PD.onlyOne); return; }
+    if (po) { if (po.dataset.pfnOpen === '0') { go('pfdetail'); $('pfd-scroll').scrollTop = 0; document.querySelector('#screen-pfdetail .pfd-chip').click(); } else showSnack(PD.onlyOne); return; }
     if (e.target.closest('[data-back="pfdetail"]')) { go('namedpf'); return; }
-    if (e.target.closest('[data-pfd-buy]')) { resetPbuy(); go('pfbuy'); return; }
-    if (e.target.closest('[data-back="pfbuy"]')) { $('pb-input').blur(); go(pbMode === 'opt' ? 'stock' : 'pfdetail'); return; }
+    if (e.target.closest('[data-pfd-buy]')) { pbFromHeld = false; resetPbuy(); go('pfbuy'); return; }
+    if (e.target.closest('.pf-named .instr')) { openHeld(); return; }
+    const pht = e.target.closest('[data-pfh-tab]'); if (pht) { setPfhTab(+pht.dataset.pfhTab); return; }
+    if (e.target.closest('[data-pfh-sell]')) { showSnack(PD.held.sellSnack); return; }
+    if (e.target.closest('[data-pfh-buy]')) { pbFromHeld = true; resetPbuy(); go('pfbuy'); return; }
+    if (e.target.closest('[data-back="pfheld"]')) { go('portfolio'); return; }
+    if (e.target.closest('[data-back="pfbuy"]')) { $('pb-input').blur(); go(pbMode === 'opt' ? 'stock' : pbFromHeld ? 'pfheld' : 'pfdetail'); return; }
     if (e.target.closest('[data-pb-buy]')) { pbuyPress(); return; }
     const pdir = e.target.closest('[data-pb-dir]');
     if (pdir) { pbDir = pdir.dataset.pbDir; renderPbTop(); return; }
