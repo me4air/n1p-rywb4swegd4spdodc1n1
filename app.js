@@ -622,7 +622,7 @@
   const openStock = (id) => { optMode = null; stockId = id; stockTab = 'overview'; stockRange = 'day'; renderStock(); go('stock'); $('st-scroll').scrollTop = 0; const ch = $('st-chart'); ch.scrollLeft = ch.scrollWidth; stDraw(); };
   // тап по бумаге в любом списке: Apple и Kaspi.kz открывают страницу, остальные — предупреждение
   document.addEventListener('click', (e) => {
-    const row = e.target.closest('.instr'); if (!row || row.closest('#screen-note, #screen-stock, #screen-options, #screen-pfdetail, .pf-named') || row.classList.contains('st-logo')) return;
+    const row = e.target.closest('.instr'); if (!row || row.closest('#screen-note, #screen-stock, #screen-options, #screen-pfdetail, .pf-named, .op-li') || row.classList.contains('st-logo')) return;
     const nm = row.querySelector('.name'), id = nm && ST.byName[nm.textContent.trim()];
     if (id) openStock(id); else showSnack(ST.warnSnack);
   });
