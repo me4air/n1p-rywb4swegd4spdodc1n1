@@ -664,16 +664,17 @@
     return `<svg viewBox="0 -4 311 32" width="100%" aria-hidden="true">
       <path d="M${h.map((v, i) => `${(i / (h.length - 1) * d0).toFixed(1)} ${Y(v).toFixed(1)}`).join('L')}" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
       <path d="${pts(Math.max(-2, yd - 11))}" fill="none" stroke="var(--op-up)" stroke-width="1.5" stroke-dasharray="3 3"/><path d="${pts(Math.min(25, yd + 9))}" fill="none" stroke="var(--op-dn)" stroke-width="1.5" stroke-dasharray="3 3"/>
-      <circle cx="${d0}" cy="${yd.toFixed(1)}" r="4" fill="currentColor"/></svg>`;
+      <circle cx="${d0}" cy="${yd.toFixed(1)}" r="4" fill="var(--content-primary)"/></svg>`;
   };
-  const opCard = (id) => {
+  const opCard = (id, short) => {
     const o = OPT.items[id], it = ST.items[o.und];
     return `<button class="op-li tap" data-op-open="${id}">
       <span class="instr op-ih">${logoHtml(it.logo)}<span class="data">
         <span class="row"><span class="name">${o.name}</span><span class="price">${stMoney(it.price, it)}</span></span>
         <span class="row"><span class="ticker">${OPT.L.until} ${o.expiryShort}</span><span class="ticker">${OPT.L.strikeWord} ${stNum(o.strike, 0)}${NBS}$</span></span></span></span>
       <span class="op-sp">${opSpark(o, it)}</span>
-      <span class="op-tags"><span class="op-tag">${OPT.L.tagUp} ${o.up.income}${NBS}%</span><span class="op-tag">${OPT.L.tagDn} ${o.down.income}${NBS}%</span></span></button>`;
+      <span class="op-tags">${short ? `<span class="op-tag">На рост +${o.up.income}%</span><span class="op-tag">На падение +${o.down.income}%</span>`
+        : `<span class="op-tag">${OPT.L.tagUp} ${o.up.income}${NBS}%</span><span class="op-tag">${OPT.L.tagDn} ${o.down.income}${NBS}%</span>`}</span></button>`;
   };
   $('screen-options').innerHTML = `
     <div class="note-nav"><button class="back tap" data-back="options" aria-label="Назад"><i></i></button><b>${OPT.listTitle}</b><span class="sp"></span></div>
@@ -764,6 +765,7 @@
       <div class="sh-btn"><button class="op-ok tap" data-close-sheet>${M.close}</button></div><div class="sh-safe"></div>`;
   }
   $('screen-options').addEventListener('click', (e) => { const c = e.target.closest('[data-op-open]'); if (c) openOption(c.dataset.opOpen); });
+  $('screen-buy').addEventListener('click', (e) => { const c = e.target.closest('[data-op-open]'); if (c) openOption(c.dataset.opOpen); });
 
   // ---------- Снекбар (Figma 104:27393) ----------
   const snackEl = $('snack');
@@ -886,7 +888,7 @@
       <div id="pb-top"></div>
       <div class="pb-cell"><div class="pb-card">
         <img class="pb-flag" src="${A}pbuy/flag.png" alt="">
-        <div class="pb-tx"><b>${PB.acc}</b><span class="pb-hint">${PB.accHint}</span></div>
+        <div class="pb-tx"><b id="pb-acc">${PB.acc}</b><span class="pb-hint">${PB.accHint}</span></div>
         </div></div>
       <div class="pb-amount" id="pb-amount">
         <div class="pb-lab" id="pb-lab">${PB.label}</div>
@@ -1103,6 +1105,8 @@
   };
   const openPbuyDone = () => {
     const v = pbVal(), total = v + v * PB.commission;
+    PB.balance = Math.round((PB.balance - total) * 100) / 100; // списание со свободных средств ITS: сумма + комиссия
+    const left = fmt2(PB.balance) + ' $'; PB.acc = left; PB.errMax = 'Доступно ' + left; $('pb-acc').textContent = left;
     if (pbMode === 'opt') {
       const k = optHold.findIndex((h) => h.dir === pbDir);
       const amount = (k >= 0 ? optHold.splice(k, 1)[0].amount : 0) + v; // в портфеле — вложенная сумма без комиссии (Figma 257:50831)
@@ -1117,7 +1121,7 @@
   renderPbTop(); pbFit();
 
   // ---------- Именные портфели (Figma 254:44459) ----------
-  const PF = window.PFN;
+  const PF = window.PFN; let pfdBack = 'namedpf';
   $('screen-namedpf').innerHTML = `
     <div class="note-nav"><button class="back tap" data-back="namedpf" aria-label="Назад"><i></i></button><b>${PF.title}</b><span class="sp"></span></div>
     <div class="note-scroll" id="pfn-scroll">
@@ -1157,28 +1161,41 @@
     <div class="note-buy adv-buy"><button class="tap" data-adv-apply>${AD.button}</button></div>`;
 
   // ---------- Купить (Figma 98:15688) ----------
-  const BY = window.BUY;
+  const BY = window.BUY, PFCAR = window.PFCAR;
   const prodLogo = (l) => typeof l === 'string' ? `<img class="logo" src="${A}${l}" alt="">`
     : `<span class="logo tile" style="background:${l.bg};padding:${l.pad}px"><img src="${A}${l.src}" alt=""></span>`;
   const prodCard = (p) => `
-    <div class="pc-wrap"><button class="card pcard tap" ${p.name === 'Жолбарыс электро' ? 'data-note="1"' : 'data-snack="1"'}>
+    <button class="pcard tap" ${p.name === 'Жолбарыс электро' ? 'data-note="1"' : 'data-snack="1"'}>
       <span class="pl">${prodLogo(p.logo)}</span>
       <span class="pd">
         <span class="r1"><b>${p.name}</b><b class="y">${p.yieldTxt}</b></span>
         <span class="r2"><span>${p.min}</span><span>${p.period}</span></span>
         <span class="r3"><span class="th">${p.theme}</span><span>${p.rate}</span></span>
-      </span></button></div>`;
-  const menuCell = (icon, label, go = '') => `<button class="card mcell tap" ${go ? `data-go="${go}"` : ''}><span class="vb"><b class="vbg"></b><i style="--ic:url(${A}buy/${icon}.svg)"></i></span><b>${label}</b></button>`;
+      </span></button>`;
+  const menuCell = (icon, label, go = '') => `<button class="card mcell tap" ${go ? `data-go="${go}"` : 'data-snack="1"'}><img src="${A}buy/${icon}.svg" alt=""><b>${label}</b></button>`;
+  // карусель именных портфелей (Figma 266:56056): два портфеля и карточка «Больше портфелей»
+  const pfCar = (x, i) => `<button class="pfcar tap" data-pfn-open="${i}">
+      <span class="pc-cap">${x.cap}</span><span class="pc-bg" style="background:${x.bg}"></span>
+      <img src="${A}portfolios/${x.carImg}" style="${x.carStyle}" alt="">
+      <span class="pc-txt"><b>${x.name}</b><span style="opacity:${x.opa}">${x.text}</span></span></button>`;
+  const pfCarMore = (m) => `<button class="pfcar tap" data-go="namedpf">
+      <span class="pc-cap">${m.cap}</span><span class="pc-bg" style="background:${m.bg}"></span>
+      <img src="${A}portfolios/${m.carImg}" style="${m.carStyle}" alt="">
+      <span class="pc-txt"><b>${m.name}</b><span style="opacity:.8">${m.text}</span></span></button>`;
+  const growRows = () => { // 3 бумаги с максимальным ростом за день из каталога (акции)
+    const stocks = ['KSPI', 'HSBK', 'KZAP', 'AIRA', 'KCEL', 'AAPL', 'TSLA', 'MSFT', 'NVDA', 'GOOGL', 'KO', 'JNJ', 'PG'];
+    const pct = (i) => { const m = /\(([+−])([\d,]+)/.exec(i.delta); return m ? (m[1] === '−' ? -1 : 1) * parseFloat(m[2].replace(',', '.')) : -99; };
+    return window.CATALOG.items.filter((i) => stocks.includes(i.ticker)).sort((x, y) => pct(y) - pct(x)).slice(0, 3)
+      .map((i) => [i.ticker, `<span class="up">+${pct(i).toFixed(1).replace('.', ',')}\u00a0%</span>`]);
+  };
+  const scrCard = (c) => `<div class="card collection"><h3>${c.title}</h3>
+      <div class="list">${(c.grow ? growRows() : c.rows).map(([tk, v]) => { const b = window.CATALOG.items.find((i) => i.ticker === tk); return instr({ name: b.name, price: v, ticker: b.ticker, delta: '', logo: b.logo }); }).join('')}
+        <div class="coll-more"><button class="more-btn tap" data-snack="1">Показать все</button></div></div></div>`;
   const hero = BY.hero;
   const recentItems = BY.recentIds.map((id) => window.SEARCH.by[id]);
-  let buyTab = BY.tabs[0];
-  const renderBuyProducts = () => {
-    $('buy-products').innerHTML = BY.sets[buyTab].map(prodCard).join('');
-    document.querySelectorAll('.buy-chip').forEach((c) => c.classList.toggle('selected', c.dataset.tab === buyTab));
-  };
   $('screen-buy').innerHTML = `
     <div class="search-row"><label class="search tap" data-go="search"><img src="${A}imgMagnifierM.svg" alt=""><input type="text" placeholder="Название, тикер или isin" readonly tabindex="-1"></label></div>
-    <div class="menu2">${menuCell('tile', 'Каталог бумаг', 'catalog')}${menuCell('calendar', 'Календарь инвестора')}</div>
+    <div class="hscroll menu2">${menuCell('arrow-rise', 'Все бумаги', 'catalog')}${menuCell('briefcase', 'Портфели', 'namedpf')}${menuCell('calendar', 'Опционы', 'options')}${menuCell('crown-m', 'Структурные продукты')}</div>
     <div class="section-pad">
       <button class="hero-prod tap" data-note="1">
         <img class="art" src="${A}imgFrame312121540.png" alt="">
@@ -1186,11 +1203,16 @@
         <span class="bot"><span class="tg"><i style="--ic:url(${A}buy/crown.svg)"></i>${hero.tag}</span><b>${hero.rate}</b></span>
       </button>
     </div>
-    ${header('Структурные продукты N1broker', false)}
-    <div class="hscroll buy-chips">${BY.tabs.map((t) => `<button class="buy-chip tap" data-tab="${t}">${t}</button>`).join('')}</div>
-    <div id="buy-products"></div>
-    <div class="header sub-h"><h2>${CL.roi.title}</h2><p>${CL.roi.sub}</p></div>
-    ${collRow(CL.roi.sectors)}
+    ${header('Именные портфели', true, 'namedpf')}
+    <div class="hscroll pfcars">${PFCAR.items.map(pfCar).join('')}${pfCarMore(PFCAR.more)}</div>
+    <button class="header tap" data-snack="1"><h2>Структурные продукты</h2><img src="${A}imgChevronForwardM.svg" alt=""></button>
+    <div class="section-pad"><div class="card prod-set"><h3>${BY.setTitle}</h3>
+      ${BY.sets[BY.setTitle].map(prodCard).join('')}
+      <div class="coll-more"><button class="more-btn tap" data-snack="1">Показать все</button></div></div></div>
+    ${header('Событийные опционы', true, 'options')}
+    <div class="hscroll buy-ops">${OPT.order.slice(0, 2).map((id) => opCard(id, true)).join('')}</div>
+    ${header('Скринеры', false)}
+    <div class="hscroll collections">${BY.screeners.map(scrCard).join('')}</div>
     ${header('Подборки ценных бумаг', false)}
     ${themesHtml()}
     ${header('Компании и дивиденды', false)}
@@ -1205,7 +1227,6 @@
           <div class="row"><span class="ticker">${i.ticker}</span><span class="delta${i.neg ? ' neg' : ''}">${i.delta}</span></div>
         </div></button>`).join('')}</div></div></div>
     <div style="height:8px"></div>`;
-  renderBuyProducts();
 
   // ---------- Каталог бумаг (Figma 101:20766 · 101:25365) ----------
   const CT = window.CATALOG;
@@ -1635,8 +1656,6 @@
     }
     const pr = e.target.closest('[data-plat]');
     if (pr) { catPlat = pr.dataset.plat; catType = 'all'; renderCatalog(); renderSheet(); setTimeout(closeSheet, 220); }
-    const bc = e.target.closest('.buy-chip');
-    if (bc) { buyTab = bc.dataset.tab; renderBuyProducts(); }
     if (e.target.closest('[data-back="search"]')) go(searchFrom);
     const nw = e.target.closest('[data-news]');
     if (nw) { if (window.ARTICLE[nw.dataset.news]) { renderArticle(nw.dataset.news); go('article'); $('art-scroll').scrollTop = 0; /* в скрытом экране сброс не срабатывает — повторяем после показа */ } else showSnack(); }
@@ -1647,8 +1666,8 @@
     if (e.target.closest('[data-back="stock"]')) go(stockFrom);
     if (e.target.closest('[data-pfn]')) { go('namedpf'); return; }
     const po = e.target.closest('[data-pfn-open]');
-    if (po) { if (po.dataset.pfnOpen === '0') { go('pfdetail'); $('pfd-scroll').scrollTop = 0; document.querySelector('#screen-pfdetail .pfd-chip').click(); } else showSnack(PD.onlyOne); return; }
-    if (e.target.closest('[data-back="pfdetail"]')) { go('namedpf'); return; }
+    if (po) { if (po.dataset.pfnOpen === '0') { pfdBack = po.closest('.pfcars') ? 'buy' : 'namedpf'; go('pfdetail'); $('pfd-scroll').scrollTop = 0; document.querySelector('#screen-pfdetail .pfd-chip').click(); } else showSnack(PD.onlyOne); return; }
+    if (e.target.closest('[data-back="pfdetail"]')) { go(pfdBack); return; }
     if (e.target.closest('[data-pfd-buy]')) { pbFromHeld = false; resetPbuy(); go('pfbuy'); return; }
     if (e.target.closest('.pf-named .instr')) { openHeld(); return; }
     const pht = e.target.closest('[data-pfh-tab]'); if (pht) { setPfhTab(+pht.dataset.pfhTab); return; }
