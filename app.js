@@ -680,7 +680,7 @@
     <div class="note-nav"><button class="back tap" data-back="options" aria-label="Назад"><i></i></button><b>${OPT.listTitle}</b><span class="sp"></span></div>
     <div class="note-scroll" id="op-scroll">
       <div class="op-head"><h1>${OPT.head}</h1><p>${OPT.sub}</p></div>
-      <div class="op-list">${OPT.order.map(opCard).join('')}</div>
+      <div class="op-list">${OPT.order.map((id) => opCard(id, true)).join('')}</div>
     </div>`;
   function openOption(id) {
     const o = OPT.items[id]; optMode = id; stockId = o.und; stockTab = 'overview';
