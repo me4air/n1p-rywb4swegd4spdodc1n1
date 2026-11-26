@@ -1157,13 +1157,16 @@
   // Опцион появляется первым среди бумаг площадки ITS (в макете строки нет — оформлена по образцу других бумаг)
   let simPending = null; // покупка опциона, ждущая нажатия «В портфель»
   const optHold = []; // { id, dir, qty, amount }: опцион, сторона, число контрактов, вложено без комиссии; последние покупки — в начале
+  const simCdSec = (h) => h.endAt ? Math.max(0, Math.min(SIM_DELAY / 1000, Math.ceil((h.endAt - Date.now()) / 1000))) : SIM_DELAY / 1000; // обратный отсчёт 15 → 0 (запускается после выхода со статусного экрана)
+  const simCdText = (h) => `${simCdSec(h)}${NBS}с`;
+  setInterval(() => optHold.forEach((h) => { const el = document.querySelector(`.opt-hold[data-cd="${h.id}|${h.dir}"] .delta`); if (el) el.textContent = simCdText(h); }), 250);
   const renderOptHold = () => {
     const list = document.querySelector('#screen-portfolio .pf-card[data-pfi="0"] .list');
     const base = [...list.children].filter((r) => !r.classList.contains('opt-hold'));
     const rows = optHold.map((h) => {
       const t = document.createElement('div');
-      const oo = OPT.items[h.id], oi = ST.items[oo.und]; t.innerHTML = instr({ name: `${PO.holdName[h.dir]} ${oi.navTitle}`, price: pbMoney(h.amount) + ' $', ticker: `До ${oo.expiryShort} · ${pbFmt(h.qty)} шт.`, delta: '', logo: oi.logo });
-      const row = t.firstElementChild; row.classList.add('opt-hold'); return row;
+      const oo = OPT.items[h.id], oi = ST.items[oo.und]; t.innerHTML = instr({ name: `${PO.holdName[h.dir]} ${oi.navTitle}`, price: pbMoney(h.amount) + ' $', ticker: `До ${oo.expiryShort} · ${pbFmt(h.qty)} шт.`, delta: simCdText(h), logo: oi.logo });
+      const row = t.firstElementChild; row.classList.add('opt-hold'); row.dataset.cd = h.id + '|' + h.dir; return row;
     });
     list.replaceChildren(...rows, ...base);
     [...list.children].forEach((r, i) => r.classList.toggle('extra', i >= 3)); // на виду по-прежнему три бумаги, остальные — под «Показать больше»
@@ -1188,7 +1191,7 @@
   // ---------- Симуляция срабатывания опциона (Figma 299:47802 · 299:48383 · 299:48959 · 299:49186) ----------
   // Через 30 с после покупки опцион «срабатывает» на любом экране: покупка уходит из портфеля, сверху появляется пуш,
   // по тапу открывается экран результата. Вероятность: 70 % — сработал, 30 % — нет. Пуш сам исчезает через 10 с.
-  const SIM_DELAY = 30000, SIM_PUSH = 10000, SIM_WIN = 0.7;
+  const SIM_DELAY = 15000, SIM_PUSH = 10000, SIM_WIN = 0.7;
   const simPhone = document.querySelector('.phone');
   const simEl = document.createElement('div');
   simEl.innerHTML = `<button class="optpush" id="optpush" hidden aria-live="polite"></button>
@@ -1251,7 +1254,7 @@
     res.id = ++simSeq; simResults[res.id] = res; simEvAdd(res); // плашка в блоке событий на Главной висит, пока пользователь не откроет статусный экран
     simQueue.push(res); simNext();
   }
-  const simSchedule = (rec) => setTimeout(() => simSettle(rec), SIM_DELAY);
+  const simSchedule = (rec) => { const h = optHold.find((x) => x.id === rec.id && x.dir === rec.dir); if (h) h.endAt = Date.now() + SIM_DELAY; setTimeout(() => simSettle(rec), SIM_DELAY); };
   function simNext() {
     if (simCur || !simQueue.length) return;
     const res = simCur = simQueue.shift(), el = $('optpush'), { o, it } = res, nm = `${PO.holdName[res.dir]} ${it.navTitle}`;
