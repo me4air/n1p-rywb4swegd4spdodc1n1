@@ -122,7 +122,7 @@ window.DATA = {
           { extra: true, logo: { src: 'logos/nvidia.svg', bg: '#fff', pad: 4, crop: 'nvidia' }, name: 'NVIDIA', price: `7${nb}520${nb}$`, qty: `40${nb}шт.`, delta: `↑${nb}646,14${nb}$${nb}(+9,4${nb}%)` },
           { extra: true, logo: { src: 'logos/apple.svg', bg: '#000', pad: 11, invert: true }, name: 'Apple', price: `5${nb}240${nb}$`, qty: `20${nb}шт.`, delta: `↑${nb}157,56${nb}$${nb}(+3,1${nb}%)` },
         ],
-        currencies: [ { flag: 'pf/flag-usd.png', name: 'USD', amount: `4${nb}868,40${nb}$` } ] },
+        currencies: [ { flag: 'pf/flag-kzt.png', name: 'KZT', amount: `0${nb}₸` }, /* ADDED: счёт в тенге на N1, чтобы был перевод между счетами */ { flag: 'pf/flag-usd.png', name: 'USD', amount: `4${nb}868,40${nb}$` } ] },
     ],
     // Новости по инструментам клиента (ADDED, тексты демо)
     news: {

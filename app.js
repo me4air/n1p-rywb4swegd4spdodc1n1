@@ -206,8 +206,8 @@
         <div class="plat"><span>${p.name}</span><i></i></div>
       </button>
       <div class="list">${p.items.map(pfInstr).join('')}</div>
-      <div class="curs">${p.currencies.map((c) => `
-        <button class="cur-row tap"><img src="${A}${c.flag}" alt=""><b>${c.name}</b><span>${c.amount}</span></button>`).join('')}</div>
+      <div class="curs">${p.currencies.map((c, ci) => `
+        <button class="cur-row tap" data-cur-row="${P.platforms.indexOf(p)}|${ci}"><img src="${A}${c.flag}" alt=""><b>${c.name}</b><span>${c.amount}</span></button>`).join('')}</div>
       <button class="more-btn tap" data-toggle>Показать больше</button>
     </div>`;
   $('screen-portfolio').innerHTML = `
@@ -435,17 +435,44 @@
     const vis = noise.slice(p0), rg = Math.max(...vis) - Math.min(...vis) || 1, k = E * amp / 100 / rg;
     return noise.map((nz, i) => i >= p0 ? S + (E - S) * (i - p0) / L + nz * k : S + nz * k);
   }
-  let stV = [], stY = (y) => y;
+  let stV = [], stY = (y) => y, stMode = 'line', stCs = []; // stMode: 'line' | 'candle' — вид графика бумаги (Figma 299:49388, переключатель 299:49380)
+  const ST_G = { day: 11, week: 13, month: 3, m6: 5, year: 5, all: 5 }; // точек серии в одной свече: день — час, неделя — день, месяц — день, дальше — ~неделя
+  function stCandles() { // свечи из серии цен: открытие каждой = закрытие предыдущей, тени чуть шире экстремумов группы
+    const N = stV.length, g = ST_G[stockRange], r = stRng(stockId + stockRange + 'cd'), out = [];
+    for (let e = N - 1; e > 0; e -= g) {
+      const s = Math.max(0, e - g); let hi = -Infinity, lo = Infinity;
+      for (let i = s; i <= e; i++) { hi = Math.max(hi, stV[i]); lo = Math.min(lo, stV[i]); }
+      const sp = (hi - lo) || stV[e] * .002;
+      out.unshift({ s, e, c: (s + e) / 2, o: stV[s], cl: stV[e], h: hi + r() * sp * .35, l: lo - r() * sp * .35 });
+    }
+    return out;
+  }
   const ST_XW = 985, ST_TOP = 12, ST_BOT = 214; // верхний/нижний пунктир; средний — текущая цена
   function stDraw() { // масштаб подбирается под видимое окно: линия всегда упирается в верхний и нижний пунктир
     const box = $('st-chart'); if (!box || !stV.length) return;
     const N = stV.length, f0 = box.scrollLeft / box.scrollWidth, f1 = (box.scrollLeft + box.clientWidth) / box.scrollWidth;
     const i0 = Math.max(0, Math.floor(f0 * 1000 / ST_XW * (N - 1)) - 1), i1 = Math.min(N - 1, Math.ceil(f1 * 1000 / ST_XW * (N - 1)) + 1);
+    if (stMode === 'candle') { stDrawCandles(box, N, i0, i1); return; }
     const win = stV.slice(i0, i1 + 1), mn = Math.min(...win), mx = Math.max(...win) || 1, sp = (mx - mn) || 1;
     const Y = (y) => ST_BOT - (y - mn) / sp * (ST_BOT - ST_TOP), E = stV[N - 1]; stY = Y;
     $('st-path').setAttribute('d', 'M' + stV.map((y, i) => `${(i / (N - 1) * ST_XW).toFixed(1)} ${Y(y).toFixed(1)}`).join('L'));
     $('st-dot').style.top = Y(E).toFixed(1) + 'px';
     $('st-gm').style.top = Math.min(ST_BOT, Math.max(ST_TOP, Y(E))).toFixed(1) + 'px';
+  }
+
+  function stDrawCandles(box, N, i0, i1) { // масштаб — под видимое окно свечей; тела 2 px минимум
+    const it = ST.items[stockId], vis = stCs.filter((c) => c.e >= i0 && c.s <= i1), list = vis.length ? vis : stCs;
+    let mn = Math.min(...list.map((c) => c.l)), mx = Math.max(...list.map((c) => c.h)); const pad = ((mx - mn) || 1) * .1; mn -= pad; mx += pad; const sp = mx - mn; // запас 10 %: свечи не упираются в пунктиры
+    const Y = (y) => ST_BOT - (y - mn) / sp * (ST_BOT - ST_TOP), E = stV[N - 1]; stY = Y;
+    const cdl = $('st-cdl'), g = ST_G[stockRange], bw = Math.max(3, Math.min(22, Math.round(cdl.clientWidth * ST_XW / 1000 * g / (N - 1) * .52)));
+    [...cdl.children].forEach((el, k) => {
+      const c = stCs[k], top = Y(Math.max(c.o, c.cl)), bot = Y(Math.min(c.o, c.cl)), wk = el.firstChild, bd = el.lastChild;
+      wk.style.top = Y(c.h).toFixed(1) + 'px'; wk.style.height = Math.max(1, Y(c.l) - Y(c.h)).toFixed(1) + 'px';
+      const bh = Math.max(2, bot - top); bd.style.top = (top - (bh - (bot - top)) / 2).toFixed(1) + 'px'; bd.style.height = bh.toFixed(1) + 'px'; bd.style.width = bw + 'px'; bd.style.marginLeft = -bw / 2 + 'px';
+    });
+    $('st-gm').style.top = Y(E).toFixed(1) + 'px';
+    const tag = $('st-tag'); tag.textContent = stNum(E, it.decimals); tag.style.top = (Y(E) - 10).toFixed(1) + 'px';
+    [...$('st-yl').children].forEach((el, k) => { el.textContent = stNum(mx - sp * k / 2, it.decimals); }); // подписи цен у трёх пунктиров
   }
 
   // ---- зажатие на графике: полоска и точка под пальцем, цена и дата на тот момент; отпустил — всё возвращается ----
@@ -470,6 +497,13 @@
     const box = $('st-chart'), it = ST.items[stockId], N = stV.length, rc = box.getBoundingClientRect();
     const fr = Math.min(1, Math.max(0, (clientX - rc.left) / rc.width));
     const f = (box.scrollLeft + fr * box.clientWidth) / box.scrollWidth * 1000 / ST_XW;
+    if (stMode === 'candle') { // зажатие на свечах: привязка к ближайшей свече, в шапке — закрытие и О / В / Н / З
+      const idx = f * (N - 1); let k = 0, b = 1e9; stCs.forEach((c, j) => { const d = Math.abs(c.c - idx); if (d < b) { b = d; k = j; } });
+      const c = stCs[k], n = (v) => stNum(v, it.decimals), cur = $('st-cur');
+      cur.style.left = (c.c / (N - 1) * ST_XW / 10) + '%'; cur.style.display = 'block'; $('st-cdot').style.display = 'none';
+      $('st-p').textContent = stMoney(c.cl, it); $('st-when').textContent = `О${NBS}${n(c.o)}  В${NBS}${n(c.h)}  Н${NBS}${n(c.l)}  З${NBS}${n(c.cl)}`;
+      $('st-p').closest('.st-ph').classList.add('scrub'); return;
+    }
     const i = Math.min(N - 1, Math.max(0, Math.round(f * (N - 1)))), y = stV[i];
     const cur = $('st-cur'), dot = $('st-cdot'), left = (i / (N - 1) * ST_XW / 10) + '%';
     cur.style.left = dot.style.left = left; dot.style.top = stY(y) + 'px'; cur.style.display = dot.style.display = 'block';
@@ -505,15 +539,21 @@
     stV = stSeries(it, rg, S, E);
     const ax = ST.axisPre[rg].map((t) => `<p class="pre">${t}</p>`).join('') + ST.axis[rg].map((t) => `<p>${t}</p>`).join('');
     const d = day ? it.dayChange : E - S, pct = day ? it.dayPct : (E / S - 1) * 100;
-    return { delta: `↑${NBS}${stNum(d, it.decimals)}${NBS}${it.cur}${NBS}(+${stNum(pct, 1)}${NBS}%)`, label: ST.rangeLabel[rg],
-      html: `<div class="st-in" style="width:${((ST_GEN[rg][0] + ST_GEN[rg][1]) / ST_GEN[rg][0] * 100).toFixed(1)}%"><div class="st-plot">
+    if (stMode === 'candle') stCs = stCandles();
+    const plot = stMode === 'candle'
+      ? `<div class="st-plot"><div class="st-cdl" id="st-cdl">${stCs.map((c) => `<b class="cd ${c.cl >= c.o ? 'up' : 'dn'}" style="left:${(c.c / (stV.length - 1) * ST_XW / 10).toFixed(2)}%"><i class="wk"></i><i class="bd"></i></b>`).join('')}</div><i class="st-cur" id="st-cur"></i><b class="st-cdot" id="st-cdot"></b></div>`
+      : `<div class="st-plot">
         <svg viewBox="0 0 1000 230" preserveAspectRatio="none" aria-hidden="true"><path id="st-path" d="" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>
-        <b class="st-dot" id="st-dot" style="left:98.5%"></b><i class="st-cur" id="st-cur"></i><b class="st-cdot" id="st-cdot"></b></div><div class="st-axis">${ax}</div></div>` };
+        <b class="st-dot" id="st-dot" style="left:98.5%"></b><i class="st-cur" id="st-cur"></i><b class="st-cdot" id="st-cdot"></b></div>`;
+    return { delta: `↑${NBS}${stNum(d, it.decimals)}${NBS}${it.cur}${NBS}(+${stNum(pct, 1)}${NBS}%)`, label: ST.rangeLabel[rg],
+      html: `<div class="st-in" style="width:${((ST_GEN[rg][0] + ST_GEN[rg][1]) / ST_GEN[rg][0] * 100).toFixed(1)}%">${plot}<div class="st-axis">${ax}</div></div>` };
   }
   function renderStockChart(keepScroll) {
     const it = ST.items[stockId], c = stChartHtml(it), box = $('st-chart');
     $('st-delta').textContent = c.delta; $('st-dlabel').textContent = c.label;
     stScrubEnd(); box.innerHTML = c.html;
+    box.parentNode.classList.toggle('cdl', stMode === 'candle'); $('st-mode').innerHTML = `<img src="${A}stock/${stMode === 'candle' ? 'ic-area' : 'ic-candles'}.svg" alt="">`; // кнопка показывает, на что переключаемся
+    $('st-mode').setAttribute('aria-label', stMode === 'candle' ? 'Показать линией' : 'Показать свечами');
     box.scrollLeft = box.scrollWidth; stDraw(); box.onscroll = () => requestAnimationFrame(stDraw); // открывается «сегодня» — конец графика, историю можно подтянуть влево
     document.querySelectorAll('.st-range').forEach((b) => b.classList.toggle('selected', b.dataset.rg === stockRange));
   }
@@ -523,9 +563,9 @@
     const news = it.news.concat(stockMore[stockId] ? it.moreNews : []);
     return `
       <div class="st-card st-price">
-        <div class="st-ph"><div class="st-p" id="st-p">${stMoney(it.price, it)}</div>
+        <div class="st-ph"><button class="st-mode tap" id="st-mode" type="button"></button><div class="st-p" id="st-p">${stMoney(it.price, it)}</div>
           <div class="st-pm"><span class="tag success" id="st-delta"></span><span id="st-dlabel"></span><span id="st-when"></span></div></div>
-        <div class="st-cw"><i class="gl" style="top:12px"></i><i class="gl" id="st-gm"></i><i class="gl" style="top:214px"></i><div class="st-chart" id="st-chart"></div></div>
+        <div class="st-cw"><i class="gl" style="top:12px"></i><i class="gl" id="st-gm"></i><i class="gl" style="top:214px"></i><i class="gl st-gx" style="top:113px"></i><div class="st-chart" id="st-chart"></div><i class="st-tag" id="st-tag"></i><div class="st-yl" id="st-yl"><span></span><span></span><span></span></div></div>
         <div class="st-ranges"><div>${ST.ranges.map(([id, t]) => `<button class="st-range tap" data-rg="${id}">${t}</button>`).join('')}</div></div>
       </div>
       <div class="st-pos"><div class="card"><div><span>${ST.portfolioTitle[0]}</span><b>${it.qty}${NBS}шт.</b></div><div class="r"><span>${ST.portfolioTitle[1]}</span><b class="n">${stMoney(it.qty * it.price, it)}</b></div></div></div>
@@ -637,6 +677,7 @@
     const tb = e.target.closest('.st-chip');
     if (tb) { stockTab = tb.dataset.st; renderStock(); sc.scrollTop = 0; return; } // вкладка всегда прилипла сверху — скролл ровно до неё
     const bd = e.target.closest('[data-bk-dir]'); if (bd) { opBookDir = bd.dataset.bkDir; renderStock(); return; }
+    if (e.target.closest('#st-mode')) { stMode = stMode === 'line' ? 'candle' : 'line'; renderStockChart(); return; } // переключатель «линия / свечи»
     const rb = e.target.closest('.st-range'); if (rb) { stockRange = rb.dataset.rg; renderStockChart(); return; }
     if (e.target.closest('#st-more')) { stockMore[stockId] = true; const mb = e.target.closest('.st-more'); $('st-news').insertAdjacentHTML('beforeend', ST.items[stockId].moreNews.map(stNewsCard).join('')); mb.remove(); return; }
     if (e.target.closest('#st-fav')) {
@@ -1525,6 +1566,102 @@
       c.querySelector('.r1 .tag').textContent = pmDelta(x.delta, x.pct);
     });
   };
+  // Свободные средства площадки (Figma 299:49990): баланс валюты и действия — пополнить, перевести в другую валюту, вывести
+  let balCtx = { pi: 0, ci: 0 };
+  const BAL_ACTS = [['topup', 'ic-plus', 'Пополнить счет', 'С карты или счета вашего банка'], ['xfer', 'ic-swap', 'Перевести', (c) => c.name === 'KZT' ? 'На счет в долларах' : 'На счет в тенге'], ['out', 'ic-arrow', 'Вывести средства', 'На ваш банковский счет']];
+  const renderBalSheet = (pi, ci) => {
+    const pl = P.platforms[pi], c = pl.currencies[ci]; balCtx = { pi, ci };
+    sheetEl.innerHTML = `
+      <div class="sh-head s"><h2>${pl.name}</h2><button class="sh-x tap" data-close-sheet aria-label="Закрыть"><img src="${A}search/cross.svg" alt=""></button></div>
+      <div class="bal-cur"><img src="${A}${c.flag}" alt=""><b>Баланс ${c.name}</b><span>${c.amount}</span></div>
+      ${BAL_ACTS.map(([key, ic, t, sub]) => `<button class="sh-row bal-act tap" data-bal-act="${key}"><i class="bal-ic" style="--ic:url(${A}sheet/${ic}.svg)"></i><span class="tx"><b>${t}</b><span>${typeof sub === 'function' ? sub(c) : sub}</span></span><i class="bal-ch"></i></button>`).join('')}
+      <div class="sh-safe"></div>`;
+  };
+  // ---------- Перевод между счетами площадки (Figma 299:50581 · 299:50765) ----------
+  const XF_CUR = { USD: { sym: '$', flag: 'pbuy/flag.png', word: 'доллары', min: 1 }, KZT: { sym: '₸', flag: 'pbuy/flag-kz.png', word: 'тенге', min: 100 } }; // минимум: 1 $ или 100 ₸
+  const xfNum = (t) => Number(String(t).replace(/[^\d,]/g, '').replace(',', '.'));
+  const XF_BAL = P.platforms.map((p) => p.currencies.map((c) => xfNum(c.amount))); // числовые остатки по счетам: [площадка][валюта]
+  let xfReady = false, xfDoneReady = false; // экраны перевода собираются только изнутри потока; по прямой ссылке или после перезагрузки они пусты
+  let xf = { pi: 0, a: 'USD', b: 'KZT' }; // a — счёт списания, b — счёт зачисления
+  const xfIdx = (name) => P.platforms[xf.pi].currencies.findIndex((c) => c.name === name);
+  const xfBal = (name) => XF_BAL[xf.pi][xfIdx(name)];
+  const xfMoney = (n, cur) => cur === 'KZT' ? `${pbFmt(Math.round(n))}${NBS}₸` : `${pbMoney(n)}${NBS}$`;
+  const xfConv = (v, from) => from === 'USD' ? Math.round(v * PM.rate) : Math.round(v / PM.rate * 100) / 100; // курс приложения: 1 $ = PM.rate ₸
+  const xfPlat = () => P.platforms[xf.pi].name.replace('Площадка ', '');
+  $('screen-xfer').innerHTML = `
+    <div class="note-nav"><button class="back tap" data-back="xfer" aria-label="Назад"><i></i></button><b>Перевести</b><span class="sp"></span></div>
+    <div class="note-scroll" id="xf-scroll">
+      <div class="xf-accs">
+        <div class="pb-cell xf-c"><div class="pb-card xf-acc"><img class="xf-fl" id="xf-fa" alt=""><div class="pb-tx"><span class="pb-hint" id="xf-ta"></span><b id="xf-ba"></b></div></div></div>
+        <div class="pb-cell xf-c"><div class="pb-card xf-acc"><img class="xf-fl" id="xf-fb" alt=""><div class="pb-tx"><span class="pb-hint" id="xf-tb"></span><b id="xf-bb"></b></div></div></div>
+        <button class="xf-swap tap" data-xf-swap aria-label="Поменять счета местами"><i></i></button>
+      </div>
+      <div class="pb-amount" id="xf-amount" data-filled="">
+        <div class="pb-lab" id="xf-lab">Введите сумму</div>
+        <div class="pb-inrow">
+          <label class="pb-row-in" for="xf-input"><input id="xf-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="0" aria-label="Введите сумму"><span class="pb-cur" id="xf-cur">$</span><span class="pb-mirror" id="xf-mirror" aria-hidden="true"></span></label>
+        </div>
+        <i class="pb-div"></i>
+        <div class="pb-hintrow"><div class="pb-hint" id="xf-hint"></div></div>
+      </div>
+      <div class="pb-cell"><div class="pb-sum">
+        <div class="pb-sh"><span class="xf-ic"><i></i></span><div><div class="pb-cap">Вы переводите</div><b>Со счета на счет</b></div></div>
+        <div class="pb-sr"><span id="xf-r1l"></span><span id="xf-r1v">~</span></div>
+        <div class="pb-sr"><span id="xf-r2l"></span><span id="xf-r2v">~</span></div>
+      </div></div>
+    </div>
+    <div class="note-buy pb-bar"><button class="tap" data-xf-go>Подтвердить перевод</button></div>`;
+  const xfIn = $('xf-input'), xfVal = () => Number(xfIn.value.replace(/\D/g, '')) || 0, xfMin = () => XF_CUR[xf.a].min;
+  const xfState = (s) => { // '' | empty | min | max — подпись и разделитель красные в ошибке
+    $('xf-amount').dataset.err = s ? '1' : '';
+    $('xf-lab').textContent = s === 'min' ? `Минимальный перевод — ${xfMin()}${NBS}${XF_CUR[xf.a].sym}` : s === 'max' ? `Доступно ${xfMoney(xfBal(xf.a), xf.a)}` : 'Введите сумму';
+  };
+  const xfFit = () => { $('xf-mirror').textContent = xfIn.value || xfIn.placeholder; xfIn.style.width = ($('xf-mirror').offsetWidth + 2) + 'px'; $('xf-amount').dataset.filled = xfIn.value ? '1' : ''; };
+  const xfSum = () => {
+    const v = xfVal(), ok = v >= xfMin();
+    $('xf-r1v').textContent = ok ? xfMoney(v, xf.a) : '~'; $('xf-r2v').textContent = ok ? xfMoney(xfConv(v, xf.a), xf.b) : '~';
+  };
+  const xfRender = () => {
+    const a = XF_CUR[xf.a], b = XF_CUR[xf.b];
+    $('xf-fa').src = A + a.flag; $('xf-fb').src = A + b.flag;
+    $('xf-ta').textContent = `Счет списания - ${xfPlat()} ${a.word}`; $('xf-tb').textContent = `Счет зачисления - ${xfPlat()} ${b.word}`;
+    $('xf-ba').textContent = xfMoney(xfBal(xf.a), xf.a); $('xf-bb').textContent = xfMoney(xfBal(xf.b), xf.b);
+    $('xf-cur').textContent = a.sym; $('xf-hint').textContent = `Минимум: ${a.min}${NBS}${a.sym}`;
+    $('xf-r1l').textContent = `Спишем ${a.word}:`; $('xf-r2l').textContent = `Зачислим ${b.word}:`;
+    xfFit(); xfSum();
+  };
+  const xfValidate = () => { const v = xfVal(); xfState(!xfIn.value ? '' : v < xfMin() ? 'min' : v > xfBal(xf.a) ? 'max' : ''); };
+  xfIn.addEventListener('input', () => { const d = xfIn.value.replace(/\D/g, '').replace(/^0+/, '').slice(0, 9); xfIn.value = d ? pbFmt(d) : ''; xfState(''); xfFit(); xfSum(); });
+  xfIn.addEventListener('blur', xfValidate);
+  xfIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') xfIn.blur(); });
+  $('screen-xfer').addEventListener('pointerdown', (e) => { if (document.activeElement === xfIn && !e.target.closest('.pb-row-in')) xfIn.blur(); });
+  function xfOpen(pi, ci) { // счёт, с которого открыли шторку, — первый (списание); второй — другой счёт той же площадки
+    const cs = P.platforms[pi].currencies; xf = { pi, a: cs[ci].name, b: cs[ci === 0 ? 1 : 0].name };
+    xfReady = true; xfIn.value = ''; xfState(''); xfRender(); $('xf-scroll').scrollTop = 0; go('xfer'); requestAnimationFrame(xfFit);
+  }
+  function xfSwap() { [xf.a, xf.b] = [xf.b, xf.a]; xfRender(); if (xfIn.value) xfValidate(); }
+  function xfPress() {
+    xfIn.blur(); const v = xfVal();
+    if (!xfIn.value) { xfState('empty'); $('xf-lab').textContent = 'Введите сумму'; $('xf-amount').dataset.err = '1'; return; }
+    xfValidate(); if (v < xfMin() || v > xfBal(xf.a)) return;
+    const got = xfConv(v, xf.a), ia = xfIdx(xf.a), ib = xfIdx(xf.b), cs = P.platforms[xf.pi].currencies;
+    XF_BAL[xf.pi][ia] = Math.round((XF_BAL[xf.pi][ia] - v) * 100) / 100; XF_BAL[xf.pi][ib] = Math.round((XF_BAL[xf.pi][ib] + got) * 100) / 100;
+    [ia, ib].forEach((k) => { cs[k].amount = xfMoney(XF_BAL[xf.pi][k], cs[k].name); const row = document.querySelector(`.cur-row[data-cur-row="${xf.pi}|${k}"] span`); if (row) row.textContent = cs[k].amount; });
+    if (xf.pi === 0 && xfIdx('USD') >= 0) { PB.balance = XF_BAL[0][xfIdx('USD')]; const left = fmt2(PB.balance) + ' $'; PB.acc = left; PB.errMax = 'Доступно ' + left; $('pb-acc').textContent = left; } // свободные USD ITS для покупок
+    const a = XF_CUR[xf.a], b = XF_CUR[xf.b];
+    $('screen-xferdone').innerHTML = `
+    <div class="pd-content">
+      <div class="pd-g o"><div class="pd-og"><img class="xf-big" src="${A}${a.flag}" alt=""><span class="xf-bd"><img src="${A}${b.flag}" alt=""></span></div></div>
+      <div class="pd-text"><h1 class="pd-t">Перевод завершен</h1><p class="pd-s">Баланс обновится в течение минуты</p></div>
+      <div class="pb-cell pd-c"><div class="pb-sum">
+        <div class="pb-sh"><span class="xf-ic"><i></i></span><div><div class="pb-cap">Вы перевели</div><b>Со счета на счет</b></div></div>
+        <div class="pb-sr"><span>Списали ${a.word}:</span><span>${xfMoney(v, xf.a)}</span></div>
+        <div class="pb-sr"><span>Зачислили ${b.word}:</span><span>${xfMoney(got, xf.b)}</span></div>
+      </div></div>
+    </div>
+    <div class="note-buy pd-b"><button class="tap pd-btn" data-xf-port>В портфель</button></div>`;
+    xfDoneReady = true; const sc = $('screen-xferdone'); sc.classList.remove('play'); void sc.offsetWidth; go('xferdone'); sc.classList.add('play');
+  }
   const renderCurSheet = () => {
     const S = PM.sheet;
     sheetEl.innerHTML = `
@@ -1790,7 +1927,7 @@
   $('tabs').innerHTML = tabs.map(([id, t, i]) =>
     `<button class="tab tap" ${id === 'support' ? 'data-support' : id ? `data-go="${id}"` : ''}><i style="--ic:url(${A}${i}.svg)"></i><span>${t}</span></button>`).join('');
 
-  const screens = ['home', 'portfolio', 'buy', 'catalog', 'news', 'search', 'article', 'note', 'stock', 'advisory', 'options', 'namedpf', 'pfdetail', 'pfbuy', 'pfdone', 'pfheld', 'more'];
+  const screens = ['home', 'portfolio', 'buy', 'catalog', 'news', 'search', 'article', 'note', 'stock', 'advisory', 'options', 'namedpf', 'pfdetail', 'pfbuy', 'pfdone', 'xfer', 'xferdone', 'pfheld', 'more'];
   let articleFrom = 'home';
   let noteFrom = 'home';
   let stockPrev = 'home';
@@ -1799,6 +1936,7 @@
   let current = null;
   const show = (name) => {
     if (!screens.includes(name)) name = 'home';
+    if ((name === 'xfer' && !xfReady) || (name === 'xferdone' && !xfDoneReady)) { name = 'portfolio'; history.replaceState(null, '', '#/portfolio'); } // перезагрузка на экране перевода — возврат в Портфель, а не пустой экран
     if (name === current) return;
     const prev = current; current = name;
     if (prev === 'pfdone' && name !== 'pfdone' && simPending) { simSchedule(simPending); simPending = null; } // любой выход со статусного экрана запускает таймер срабатывания опциона
@@ -1812,10 +1950,10 @@
     hideSnack(); $('art-promo').classList.remove('show');
     screens.forEach((s) => { $('screen-' + s).hidden = s !== name; });
     document.querySelectorAll('.tab').forEach((el) => el.classList.toggle('active', el.dataset.go === name));
-    document.querySelector('.phone').classList.toggle('no-tabs', name === 'news' || name === 'catalog' || name === 'article' || name === 'note' || name === 'stock' || name === 'advisory' || name === 'options' || name === 'namedpf' || name === 'pfdetail' || name === 'pfbuy' || name === 'pfdone' || name === 'pfheld');
+    document.querySelector('.phone').classList.toggle('no-tabs', name === 'news' || name === 'catalog' || name === 'article' || name === 'note' || name === 'stock' || name === 'advisory' || name === 'options' || name === 'namedpf' || name === 'pfdetail' || name === 'pfbuy' || name === 'pfdone' || name === 'xfer' || name === 'xferdone' || name === 'pfheld');
     document.querySelector('.phone').classList.toggle('cat-on', name === 'catalog');
     document.querySelector('.phone').classList.toggle('search-on', name === 'search');
-    document.querySelector('.phone').classList.toggle('art-on', name === 'article' || name === 'pfbuy' || name === 'pfdone'); // белый статус-бар: на экранах покупки фон белый
+    document.querySelector('.phone').classList.toggle('art-on', name === 'article' || name === 'pfbuy' || name === 'pfdone' || name === 'xfer' || name === 'xferdone'); // белый статус-бар: на экранах покупки фон белый
     if (name === 'search') { if (prev !== 'note' && prev !== 'stock') { $('srch-q').value = ''; renderSearch(); $('screen-search').scrollTop = 0; $('srch-q').focus({ preventScroll: true }); } }
     else if (prev === 'search') $('srch-q').blur();
     if (name === 'news') fitLeads();
@@ -1833,6 +1971,9 @@
     if (e.target.closest('#cat-plat, #cat-plat-nav')) openSheet();
     if (e.target.closest('[data-close-sheet]')) closeSheet();
     if (e.target.closest('[data-cur-open]')) { openSheet(renderCurSheet); return; }
+    const cr = e.target.closest('[data-cur-row]'); if (cr) { const [pi, ci] = cr.dataset.curRow.split('|').map(Number); openSheet(() => renderBalSheet(pi, ci)); return; }
+    const ba = e.target.closest('[data-bal-act]');
+    if (ba) { if (ba.dataset.balAct === 'xfer') { closeSheet(); xfOpen(balCtx.pi, balCtx.ci); } else { closeSheet(); setTimeout(() => showSnack('В прототипе этот раздел пока недоступен'), 340); } return; }
     const co = e.target.closest('[data-cur-opt]');
     if (co) { pfCur = co.dataset.curOpt; applyPfCur(); renderCurSheet(); setTimeout(closeSheet, 180); return; }
     const to = e.target.closest('[data-theme-opt]');
@@ -1862,6 +2003,10 @@
     if (e.target.closest('[data-pfh-sell]')) { showSnack(PD.held.sellSnack); return; }
     if (e.target.closest('[data-pfh-buy]')) { pbFromHeld = true; resetPbuy(); go('pfbuy'); return; }
     if (e.target.closest('[data-back="pfheld"]')) { go('portfolio'); return; }
+    if (e.target.closest('[data-back="xfer"]')) { $('xf-input').blur(); go('portfolio'); return; }
+    if (e.target.closest('[data-xf-swap]')) { xfSwap(); return; }
+    if (e.target.closest('[data-xf-go]')) { xfPress(); return; }
+    if (e.target.closest('[data-xf-port]')) { go('portfolio'); return; }
     if (e.target.closest('[data-back="pfbuy"]')) { $('pb-input').blur(); go(pbMode === 'opt' ? 'stock' : pbFromHeld ? 'pfheld' : 'pfdetail'); return; }
     if (e.target.closest('[data-pb-buy]')) { pbuyPress(); return; }
     const pdir = e.target.closest('[data-pb-dir]');

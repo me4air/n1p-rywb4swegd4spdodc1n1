@@ -1325,3 +1325,44 @@ button.cur-chip { cursor: pointer; }
 .pd-ol .tile img.inv { filter: invert(1); }
 @media (max-width: 500px) { .optpush { top: calc(env(safe-area-inset-top, 0px) + 8px); } } /* на телефоне нарисованного статус-бара нет — пуш у верхнего края с учётом выреза */
 .opt-hold .delta { color: var(--content-secondary); }
+
+/* Свечной график бумаги (Figma 299:49388): переключатель, свечи, метка текущей цены, цены справа */
+.st-ph { position: relative; }
+.st-mode { position: absolute; right: 16px; top: 12px; width: 40px; height: 40px; border-radius: 50%; background: var(--bg-primary); display: flex; align-items: center; justify-content: center; }
+.st-mode img { width: 24px; height: 24px; display: block; }
+.st-cdl { position: absolute; inset: 0; }
+.cd { position: absolute; top: 0; bottom: 0; width: 0; }
+.cd.up { color: var(--content-success); } .cd.dn { color: var(--content-negative); }
+.cd .wk { position: absolute; left: -1px; width: 2px; border-radius: 1px; background: currentColor; }
+.cd .bd { position: absolute; left: 0; border-radius: 2px; background: currentColor; }
+.st-cw .st-tag, .st-cw .st-yl { display: none; }
+.st-cw.cdl .st-tag { display: block; position: absolute; z-index: 3; right: 8px; padding: 2px 6px; border-radius: 6px; background: var(--content-success); color: #fff; font: 600 12px/16px Roboto; font-style: normal; pointer-events: none; }
+.st-cw.cdl .st-yl { display: block; position: absolute; z-index: 3; right: 8px; top: 0; width: 52px; height: 230px; pointer-events: none; font: 400 12px/16px Roboto; color: var(--content-secondary); text-align: right; }
+.st-cw.cdl .st-yl span { position: absolute; right: 0; }
+.st-cw.cdl .st-yl span:nth-child(1) { top: 14px; } .st-cw.cdl .st-yl span:nth-child(2) { top: 115px; } .st-cw.cdl .st-yl span:nth-child(3) { top: 198px; }
+.st-cw.cdl #st-gm { border-top-color: var(--content-success); }
+.st-cw.cdl .st-plot, .st-cw.cdl .st-axis { margin-right: 52px; }
+.st-cw.cdl .st-in { box-sizing: border-box; }
+.st-cw .st-gx { display: none; } .st-cw.cdl .st-gx { display: block; }
+
+/* Свободные средства площадки: шторка с балансом валюты и действиями (Figma 299:49990) */
+.bal-cur { display: flex; align-items: center; gap: 12px; margin: 8px 16px 4px; padding: 8px 12px; background: var(--bg-primary); border-radius: var(--r-l); }
+.bal-cur img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex: none; }
+.bal-cur b { flex: 1; font: 600 14px/20px Roboto; } .bal-cur span { font: 400 14px/20px Roboto; }
+.bal-ic { flex: none; width: 48px; height: 48px; border-radius: var(--r-m); background: var(--bg-action-light); position: relative; }
+.bal-ic::after { content: ''; position: absolute; inset: 12px; background: var(--content-action); -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat; }
+.bal-ch { flex: none; width: 24px; height: 24px; background: var(--content-secondary); -webkit-mask: url(assets/note/chev-fwd.svg) center / contain no-repeat; mask: url(assets/note/chev-fwd.svg) center / contain no-repeat; }
+
+/* Перевод между счетами площадки (Figma 299:50581 · 299:50765) */
+.xf-accs { position: relative; }
+.xf-c { padding: 8px 16px; }
+.xf-acc { align-items: center; }
+.xf-fl { flex: none; width: 48px; height: 48px; display: block; } /* флаги — готовые скруглённые плитки из макета (pbuy/flag*.png) */
+.xf-swap { position: absolute; z-index: 2; right: 28px; top: 50%; width: 48px; height: 48px; margin-top: -24px; border-radius: 50%; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; }
+.xf-swap i { width: 24px; height: 24px; background: var(--content-action); -webkit-mask: url(assets/xfer/swap-v.svg) center / contain no-repeat; mask: url(assets/xfer/swap-v.svg) center / contain no-repeat; }
+.xf-ic { position: relative; flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--bg-action-base); }
+.xf-ic i { position: absolute; inset: 8px; background: #fff; -webkit-mask: url(assets/sheet/ic-swap.svg) center / contain no-repeat; mask: url(assets/sheet/ic-swap.svg) center / contain no-repeat; }
+.pd-og > .xf-big { width: 88px; height: 88px; display: block; }
+.xf-bd { position: absolute; left: 68px; top: 62px; width: 32px; height: 32px; box-sizing: border-box; border: 2px solid var(--bg-main); border-radius: 50%; overflow: hidden; background: var(--bg-main); }
+.xf-bd img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; display: block; }
+#screen-xfer .note-buy button { background: var(--bg-action-base); }
