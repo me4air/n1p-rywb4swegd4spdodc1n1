@@ -1242,3 +1242,6 @@ button.cur-chip { cursor: pointer; }
 
 .collection h3 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .collection .price .up { color: var(--content-success); }
+
+/* иконка портфеля: форма из pink.svg, цвет — по портфелю (в тон баннера) */
+.pk { position: absolute; inset: 0; background: var(--c, #e9407a); -webkit-mask: url(assets/pbuy/pink.svg) center / 100% 100% no-repeat; mask: url(assets/pbuy/pink.svg) center / 100% 100% no-repeat; }

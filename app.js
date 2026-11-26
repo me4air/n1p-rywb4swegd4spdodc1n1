@@ -796,9 +796,11 @@
   $('sn-act').addEventListener('click', hideSnack);
 
   // ---------- Детальная страница портфеля (Figma 254:44992) ----------
-  const PD = window.PFD.dalio;
-  (function () {
-    const info = '<i class="ci"></i>', W = 311, H = 165, X0 = 35, gy = (v) => 94 - v * 3.9;
+  const PFS = [window.PFD.dalio, window.PFD.buffett, window.PFD.thiel]; // порядок = порядок в window.PFN.items
+  const PFB = PFS.map((p) => ({ ...p.pbuy })); // снимок полей покупки (имя, минимум, подсказки) — PB общий и перезаписывается при смене портфеля
+  let PD = PFS[0], curPf = 0, pfdFit = () => {};
+  const renderPfDetail = () => {
+    const info = '<i class="ci"></i>', W = 311, H = 165, X0 = 35, gy = (v) => 94 - v * 78 / PD.ys[0];
     const line = (arr, col) => `<path d="M${arr.map((v, i) => `${(X0 + i / (arr.length - 1) * (W - X0)).toFixed(1)} ${gy(v).toFixed(1)}`).join('L')}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
     const chart = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${PD.chartTitle}">
       ${PD.ys.map((v) => `<line x1="${X0}" x2="${W}" y1="${gy(v)}" y2="${gy(v)}" stroke="var(--bg-secondary)"/><text x="0" y="${gy(v) + 4}" class="pd-ax">${v}%</text>`).join('')}
@@ -819,7 +821,7 @@
     const share = (key) => { const g = group(key); return `<div class="note-card pfc" data-key="${key}"><h3>${PD.byTitles[key]}</h3>
       <div class="pfc-bar">${bar(g)}</div><div class="pfc-leg">${leg(g)}</div></div>`; };
     // Правило: легенда — не больше трёх строк. Если не умещается, самые маленькие доли уходят в «Другое» (нужна вёрстка, поэтому вызывается при показе вкладки)
-    const fitShares = () => document.querySelectorAll('#screen-pfdetail .pfc').forEach((card) => {
+    const fitShares = pfdFit = () => document.querySelectorAll('#screen-pfdetail .pfc').forEach((card) => {
       const lg = card.querySelector('.pfc-leg'), rows = () => new Set([...lg.children].map((c) => c.offsetTop)).size;
       let g = group(card.dataset.key);
       const draw = () => { card.querySelector('.pfc-bar').innerHTML = bar(g); lg.innerHTML = leg(g); };
@@ -863,26 +865,27 @@
       <div class="note-scroll" id="pfd-scroll">
         <div class="adv-pad"><div class="pfd-banner" style="background:${PD.hero.bg}">
           <img src="${A}portfolios/${PD.hero.img}" style="${PD.hero.imgStyle}" alt="">
-          <b class="pb-t">${PD.hero.title}</b><p>${PD.hero.text}</p>
+          <b class="pb-t">${PD.hero.title}</b><p${PD.hero.textW ? ` style="width:${PD.hero.textW}px"` : ''}>${PD.hero.text}</p>
           <div class="pb-chip"><div><span>${PD.hero.risk[0]}</span><b>${PD.hero.risk[1]}</b></div><i></i><div><span>${PD.hero.sum[0]}</span><b>${PD.hero.sum[1]}</b></div></div>
         </div></div>
         <div class="pfd-tabs" role="tablist">${PD.tabs.map((t, i) => `<button class="pfd-chip tap${i ? '' : ' selected'}" data-pfd-tab="${i}" role="tab">${t}</button>`).join('')}</div>
         ${panes.map((h, i) => `<div class="pfd-pane" data-pfd-pane="${i}"${i ? ' hidden' : ''}>${h}</div>`).join('')}
       </div>
       <div class="note-buy pfd-buy"><button class="tap" data-pfd-buy>${PD.buy}</button></div>`;
-    // Переключение вкладок: чипы выделяются, панель меняется; если страницу уже прокрутили ниже шапки — показываем начало вкладки
-    $('screen-pfdetail').addEventListener('click', (e) => {
-      const t = e.target.closest('[data-pfd-tab]'); if (!t) return;
-      const i = +t.dataset.pfdTab, sc = $('pfd-scroll'), st0 = sc.scrollTop;
-      document.querySelectorAll('#screen-pfdetail .pfd-chip').forEach((c, k) => { c.classList.toggle('selected', k === i); c.setAttribute('aria-selected', k === i); });
-      document.querySelectorAll('#screen-pfdetail .pfd-pane').forEach((p, k) => { p.hidden = k !== i; });
-      if (i === 1) fitShares();
-      const tb = document.querySelector('#screen-pfdetail .pfd-tabs'); sc.scrollTop = 0;
-      const top = Math.round(tb.getBoundingClientRect().top - sc.getBoundingClientRect().top); // положение чипов в начале прокрутки
-      sc.scrollTop = Math.min(st0, sc.scrollHeight);
-      if (st0 > top || t.classList.contains('pfd-soft') || t.classList.contains('pfd-h2l')) sc.scrollTop = Math.max(0, top);
-    });
-  })();
+  };
+  renderPfDetail();
+  // Переключение вкладок: чипы выделяются, панель меняется; если страницу уже прокрутили ниже шапки — показываем начало вкладки
+  $('screen-pfdetail').addEventListener('click', (e) => {
+    const t = e.target.closest('[data-pfd-tab]'); if (!t) return;
+    const i = +t.dataset.pfdTab, sc = $('pfd-scroll'), st0 = sc.scrollTop;
+    document.querySelectorAll('#screen-pfdetail .pfd-chip').forEach((c, k) => { c.classList.toggle('selected', k === i); c.setAttribute('aria-selected', k === i); });
+    document.querySelectorAll('#screen-pfdetail .pfd-pane').forEach((p, k) => { p.hidden = k !== i; });
+    if (i === 1) pfdFit();
+    const tb = document.querySelector('#screen-pfdetail .pfd-tabs'); sc.scrollTop = 0;
+    const top = Math.round(tb.getBoundingClientRect().top - sc.getBoundingClientRect().top); // положение чипов в начале прокрутки
+    sc.scrollTop = Math.min(st0, sc.scrollHeight);
+    if (st0 > top || t.classList.contains('pfd-soft') || t.classList.contains('pfd-h2l')) sc.scrollTop = Math.max(0, top);
+  });
 
   // ---------- Покупка портфеля (Figma 256:45982 · 256:45807 · 256:46215 · 256:46383) ----------
   const PB = PD.pbuy;
@@ -916,7 +919,7 @@
     $('pb-top').innerHTML = (opt ? `
       <div class="pb-cell pb-segw"><div class="pb-seg" role="tablist">${['down', 'up'].map((d) => `<button class="tap${d === pbDir ? ' on ' + d : ''}" data-pb-dir="${d}" role="tab">${PO.seg[d === 'up' ? 0 : 1]}</button>`).join('')}</div></div>` : '') + `
       <div class="pb-cell"><div class="pb-card">
-        ${opt ? `<img class="pb-flag" src="${A}pbuy/nvidia48.png" alt="">` : `<span class="pb-ic"><img src="${A}pbuy/pink.svg" alt=""><img class="g" src="${A}pbuy/briefcase.svg" alt=""></span>`}
+        ${opt ? `<img class="pb-flag" src="${A}pbuy/nvidia48.png" alt="">` : `<span class="pb-ic"><span class="pk" style="--c:${PD.iconBg}"></span><img class="g" src="${A}pbuy/briefcase.svg" alt=""></span>`}
         <div class="pb-tx"><div class="pb-row"><b id="pb-iname">${opt ? PO.sumName[pbDir] : PB.name}</b><span>${opt ? PO.from : PB.from}</span></div>${opt ? `<span class="pb-hint">${PO.ticker}</span>` : ''}</div></div></div>`;
     $('pb-sname').textContent = opt ? PO.sumName[pbDir] : PB.name;
     $('pb-qlab').textContent = opt ? PO.qty : PB.qty;
@@ -976,20 +979,26 @@
     <div class="note-buy pd-b"><button class="tap pd-btn" data-pd-port>${DN.btn}</button></div>`;
   };
   // Именной портфель появляется на вкладке «Портфель» над площадкой ITS (Figma 256:48010 · «Портфель_С_Именным_Портфелем»)
-  let pfNamedTotal = 0;
+  const pfTotals = [0, 0, 0], pfHists = [[], [], []]; // вложено и история покупок по каждому именному портфелю
+  const pfTotal = () => pfTotals[curPf];
   const PF_GAIN = 0.021; // прирост за время владения +2,1 % к вложенной сумме (без комиссии)
   const renderPfNamed = (add) => { // add — вложенная сумма без комиссии; в портфеле показывается стоимость = вложено + прирост
-    pfNamedTotal += add;
-    const value = pfNamedTotal * (1 + PF_GAIN), delta = pfNamedTotal * PF_GAIN;
-    $('pf-named').innerHTML = `<div class="card pf-card pf-named"><div class="list">${instr({ name: PB.name, price: pbMoney(value) + ' $', ticker: DN.sub2, delta: `↑ ${pbMoney(delta)} $ (+2,1\u00a0%)`, logo: { src: 'pbuy/briefcase.svg', bg: '#e9407a', pad: 12 } })}</div></div>`;
+    pfTotals[curPf] += add;
+    const rows = PFS.map((_, i) => {
+      if (!pfTotals[i]) return '';
+      const value = pfTotals[i] * (1 + PF_GAIN), delta = pfTotals[i] * PF_GAIN;
+      const row = instr({ name: PFB[i].name, price: pbMoney(value) + ' $', ticker: DN.sub2, delta: `↑ ${pbMoney(delta)} $ (+2,1\u00a0%)`, logo: { src: 'pbuy/briefcase.svg', bg: PFS[i].iconBg, pad: 12 } }).replace(/<(\w+)/, `<$1 data-pf-held="${i}"`);
+      return `<div class="card pf-card pf-named"><div class="list">${row}</div></div>`; // каждый портфель — отдельный субсчёт и отдельная карточка (Figma 256:48010)
+    }).join('');
+    $('pf-named').innerHTML = rows;
   };
   // ---------- Страница купленного портфеля (Figma 264:50966 · 264:51317 · 266:53590 · 266:53891) ----------
-  const HD = PD.held, pfHist = []; // { total, qty } — покупки, новые в начале
+  let HD = PD.held; // pfHists[i] — { total, qty }: покупки портфеля, новые в начале
   const fmt2 = (n) => { const [i, f] = Math.abs(n).toFixed(2).split('.'); return `${pbFmt(i)},${f}`; };
   let pfhTab = 0;
   // Стоимость и прирост по бумагам считаются от баланса так, чтобы в сумме давать ровно баланс и общий прирост
   const heldData = () => {
-    const value = pfNamedTotal * (1 + PF_GAIN), delta = pfNamedTotal * PF_GAIN, c100 = (x) => Math.round(x * 100) / 100;
+    const value = pfTotal() * (1 + PF_GAIN), delta = pfTotal() * PF_GAIN, c100 = (x) => Math.round(x * 100) / 100;
     const rows = [...PD.comp].sort((x, y) => y.pct - x.pct).map((c) => { const val = c.pct / 100 * value, g = HD.growth[c.ticker]; return { c, val, raw: val * g / (100 + g) }; });
     const k = delta / rows.reduce((s, r) => s + r.raw, 0);
     rows.forEach((r) => { r.val = c100(r.val); r.d = c100(r.raw * k); });
@@ -1010,7 +1019,7 @@
     return `${d.getDate()}${NBS}${ST_MON[d.getMonth()]}${NBS}в${NBS}${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
   const pfDraw = () => {
-    const box = $('pfh-chart'); if (!box || !pfV.length) return;
+    const box = $('pfh-chart'); if (!box || !pfV.length || !box.clientWidth) return; // экран скрыт — размеров нет
     const N = pfV.length, f0 = box.scrollLeft / box.scrollWidth, f1 = (box.scrollLeft + box.clientWidth) / box.scrollWidth;
     const i0 = Math.max(0, Math.floor(f0 * 1000 / ST_XW * (N - 1)) - 1), i1 = Math.min(N - 1, Math.ceil(f1 * 1000 / ST_XW * (N - 1)) + 1);
     const win = pfV.slice(i0, i1 + 1), mn = Math.min(...win), mx = Math.max(...win), sp = (mx - mn) || 1;
@@ -1045,7 +1054,7 @@
   };
   const pfChartFit = () => { const box = $('pfh-chart'); if (box) { box.scrollLeft = box.scrollWidth; pfDraw(); } };
   const pfChartInit = (end) => {
-    const start = end - pfNamedTotal * PF_GAIN, [n, pre] = ST_GEN.day, box = $('pfh-chart'); pfEnd = end;
+    const start = end - pfTotal() * PF_GAIN, [n, pre] = ST_GEN.day, box = $('pfh-chart'); pfEnd = end;
     pfV = stSeries({ ticker: 'PFH' + PD.navTitle }, 'day', start, end);
     box.innerHTML = `<div class="st-in" style="width:${((n + pre) / n * 100).toFixed(1)}%"><div class="st-plot">
       <svg viewBox="0 0 1000 230" preserveAspectRatio="none" aria-hidden="true"><path id="pfh-path" d="" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>
@@ -1063,7 +1072,7 @@
       <button class="note-h2 pfd-h2l tap" data-pfh-tab="1">${HD.papersTitle}<i></i></button>
       <div class="section-pad"><div class="card pd-comp">${HDt.rows.slice(0, 3).map(heldRow).join('')}<button class="pfd-soft tap" data-pfh-tab="1">${HD.showAll}</button></div></div>
       <button class="note-h2 pfd-h2l tap" data-pfh-tab="2">${HD.aboutTitle}<i></i></button>
-      <div class="section-pad"><div class="card pfh-about"><div class="pfh-ah"><span class="pfh-ic"><img src="${A}pbuy/pink.svg" alt=""><img class="g" src="${A}pbuy/briefcase.svg" alt=""></span><b>${PD.navTitle}</b></div>
+      <div class="section-pad"><div class="card pfh-about"><div class="pfh-ah"><span class="pfh-ic"><span class="pk" style="--c:${PD.iconBg}"></span><img class="g" src="${A}pbuy/briefcase.svg" alt=""></span><b>${PD.navTitle}</b></div>
         <p>${PD.ideaText}</p><button class="pfd-soft tap" data-pfh-tab="2">${HD.more}</button></div></div>`,
       `<div class="section-pad"><div class="card pd-comp">${HDt.rows.map(heldRow).join('')}</div></div>`,
       `<h2 class="note-h2">${PD.ideaTitle}</h2>
@@ -1075,7 +1084,7 @@
       <h2 class="note-h2">${IN.faqTitle}</h2>
       <div class="note-pad accs">${IN.faq.map(accHtml).join('')}</div>`,
       `<h2 class="note-h2">${HD.date}</h2>
-      <div class="section-pad"><div class="card pd-comp">${pfHist.map((h) => instr({ name: PD.navTitle, price: `−${pbMoney(h.total)} $`, ticker: HD.histOp, delta: `${String(h.qty).replace('.', ',')} ${HD.histUnit}`, neg: true, logo: { src: 'pbuy/briefcase.svg', bg: '#e9407a', pad: 12 } }).replace('class="delta neg"', 'class="delta pfh-q"').replace('class="price"', 'class="price pfh-out"')).join('')}</div></div>`];
+      <div class="section-pad"><div class="card pd-comp">${pfHists[curPf].map((h) => instr({ name: PD.navTitle, price: `−${pbMoney(h.total)} $`, ticker: HD.histOp, delta: `${String(h.qty).replace('.', ',')} ${HD.histUnit}`, neg: true, logo: { src: 'pbuy/briefcase.svg', bg: PD.iconBg, pad: 12 } }).replace('class="delta neg"', 'class="delta pfh-q"').replace('class="price"', 'class="price pfh-out"')).join('')}</div></div>`];
     $('screen-pfheld').innerHTML = `
       <div class="pfh-nav"><button class="back tap" data-back="pfheld" aria-label="Назад"><i></i></button><div class="pfh-t"><b>${PD.navTitle}</b><span>${HD.sub}</span></div><span class="sp"></span></div>
       <div class="hscroll chiprow pfh-tabs" role="tablist">${HD.tabs.map((t, i) => `<button class="pfd-chip tap${i === pfhTab ? ' selected' : ''}" data-pfh-tab="${i}" role="tab">${t}</button>`).join('')}</div>
@@ -1092,7 +1101,8 @@
     const c = document.querySelector('#screen-pfheld .pfd-chip.selected'), row = c.parentElement; // выбранный чип — в зоне видимости
     row.scrollTo({ left: c.offsetLeft - 16, behavior: 'smooth' });
   };
-  const openHeld = () => { pfhTab = 0; renderHeld(); go('pfheld'); };
+  const setPf = (i) => { curPf = i; PD = PFS[i]; HD = PD.held; Object.assign(PB, PFB[i]); renderPfDetail(); }; // переключает «текущий» портфель: страница, покупка, купленный портфель
+  const openHeld = () => { pfhTab = 0; renderHeld(); go('pfheld'); pfChartFit(); }; // график считается после показа экрана: в скрытом у блока нет размеров (раньше линия не рисовалась до прокрутки)
   let pbFromHeld = false;
   // Опцион появляется первым среди бумаг площадки ITS (в макете строки нет — оформлена по образцу других бумаг)
   const optHold = []; // { dir, amount }, последние покупки — в начале
@@ -1115,7 +1125,7 @@
       const k = optHold.findIndex((h) => h.dir === pbDir);
       const amount = (k >= 0 ? optHold.splice(k, 1)[0].amount : 0) + v; // в портфеле — вложенная сумма без комиссии (Figma 257:50831)
       optHold.unshift({ dir: pbDir, amount }); renderOptHold();
-    } else { renderPfNamed(v); pfHist.unshift({ total, qty: Math.round(v / PB.min * 100) / 100 }); }
+    } else { renderPfNamed(v); pfHists[curPf].unshift({ total, qty: Math.round(v / PB.min * 100) / 100 }); }
     renderPbDone();
     const s = $('screen-pfdone'); s.classList.remove('play'); void s.offsetWidth; // перезапуск анимации появления
     go('pfdone'); s.classList.add('play');
@@ -1670,10 +1680,10 @@
     if (e.target.closest('[data-back="stock"]')) go(stockFrom);
     if (e.target.closest('[data-pfn]')) { go('namedpf'); return; }
     const po = e.target.closest('[data-pfn-open]');
-    if (po) { if (po.dataset.pfnOpen === '0') { pfdBack = po.closest('.pfcars') ? 'buy' : 'namedpf'; go('pfdetail'); $('pfd-scroll').scrollTop = 0; document.querySelector('#screen-pfdetail .pfd-chip').click(); } else showSnack(PD.onlyOne); return; }
+    if (po) { setPf(+po.dataset.pfnOpen); pfdBack = po.closest('.pfcars') ? 'buy' : 'namedpf'; go('pfdetail'); $('pfd-scroll').scrollTop = 0; document.querySelector('#screen-pfdetail .pfd-chip').click(); return; }
     if (e.target.closest('[data-back="pfdetail"]')) { go(pfdBack); return; }
     if (e.target.closest('[data-pfd-buy]')) { pbFromHeld = false; resetPbuy(); go('pfbuy'); return; }
-    if (e.target.closest('.pf-named .instr')) { openHeld(); return; }
+    const ph = e.target.closest('.pf-named .instr'); if (ph) { setPf(+ph.dataset.pfHeld); openHeld(); return; }
     const pht = e.target.closest('[data-pfh-tab]'); if (pht) { setPfhTab(+pht.dataset.pfhTab); return; }
     if (e.target.closest('[data-pfh-sell]')) { showSnack(PD.held.sellSnack); return; }
     if (e.target.closest('[data-pfh-buy]')) { pbFromHeld = true; resetPbuy(); go('pfbuy'); return; }
