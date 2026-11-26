@@ -1199,14 +1199,15 @@
   let simPending = null; // покупка опциона, ждущая нажатия «В портфель»
   const optHold = []; // { id, dir, qty, amount }: опцион, сторона, число контрактов, вложено без комиссии; последние покупки — в начале
   const simCdSec = (h) => h.endAt ? Math.max(0, Math.min(SIM_DELAY / 1000, Math.ceil((h.endAt - Date.now()) / 1000))) : SIM_DELAY / 1000; // обратный отсчёт 15 → 0 (запускается после выхода со статусного экрана)
+  const simUntilText = (h, oo) => { const d = new Date(h.until || Date.now() + SIM_DELAY), p = (n) => String(n).padStart(2, '0'); return `До ${p(d.getHours())}:${p(d.getMinutes())} · ${pbFmt(h.qty)} шт.`; }; // до какого времени открыт опцион — окно симуляции
   const simCdText = (h) => `${simCdSec(h)}${NBS}с`;
-  setInterval(() => optHold.forEach((h) => { const el = document.querySelector(`.opt-hold[data-cd="${h.id}|${h.dir}"] .delta`); if (el) el.textContent = simCdText(h); }), 250);
+  setInterval(() => optHold.forEach((h) => { const r = document.querySelector(`.opt-hold[data-cd="${h.id}|${h.dir}"]`); if (!r) return; r.querySelector('.delta').textContent = simCdText(h); r.querySelector('.ticker').textContent = simUntilText(h, OPT.items[h.id]); }), 250);
   const renderOptHold = () => {
     const list = document.querySelector('#screen-portfolio .pf-card[data-pfi="0"] .list');
     const base = [...list.children].filter((r) => !r.classList.contains('opt-hold'));
     const rows = optHold.map((h) => {
       const t = document.createElement('div');
-      const oo = OPT.items[h.id], oi = ST.items[oo.und]; t.innerHTML = instr({ name: `${PO.holdName[h.dir]} ${oi.navTitle}`, price: pbMoney(h.amount) + ' $', ticker: `До ${oo.expiryShort} · ${pbFmt(h.qty)} шт.`, delta: simCdText(h), logo: oi.logo });
+      const oo = OPT.items[h.id], oi = ST.items[oo.und]; t.innerHTML = instr({ name: `${PO.holdName[h.dir]} ${oi.navTitle}`, price: pbMoney(h.amount) + ' $', ticker: simUntilText(h, oo), delta: simCdText(h), logo: oi.logo });
       const row = t.firstElementChild; row.classList.add('opt-hold'); row.dataset.cd = h.id + '|' + h.dir; return row;
     });
     list.replaceChildren(...rows, ...base);
@@ -1218,7 +1219,7 @@
     const left = fmt2(PB.balance) + ' $'; PB.acc = left; PB.errMax = 'Доступно ' + left; $('pb-acc').textContent = left;
     if (pbMode === 'opt') {
       const id = optMode || OPT.order[0], k = optHold.findIndex((h) => h.id === id && h.dir === pbDir), prev = k >= 0 ? optHold.splice(k, 1)[0] : { amount: 0, qty: 0 };
-      optHold.unshift({ id, dir: pbDir, qty: prev.qty + v, amount: prev.amount + v * pbPrice() }); renderOptHold(); // в портфеле — вложенная сумма без комиссии (Figma 257:50831)
+      optHold.unshift({ id, dir: pbDir, qty: prev.qty + v, amount: prev.amount + v * pbPrice(), until: Date.now() + SIM_DELAY }); renderOptHold(); // в портфеле — вложенная сумма без комиссии (Figma 257:50831)
       simPending = { id, dir: pbDir, qty: v, amount: v * pbPrice() }; // таймер 30 с стартует по кнопке «В портфель»
     } else { renderPfNamed(v); pfHists[curPf].unshift({ total, qty: Math.round(v / PB.min * 100) / 100 }); }
     renderPbDone();
@@ -1295,7 +1296,7 @@
     res.id = ++simSeq; simResults[res.id] = res; simEvAdd(res); // плашка в блоке событий на Главной висит, пока пользователь не откроет статусный экран
     simQueue.push(res); simNext();
   }
-  const simSchedule = (rec) => { const h = optHold.find((x) => x.id === rec.id && x.dir === rec.dir); if (h) h.endAt = Date.now() + SIM_DELAY; setTimeout(() => simSettle(rec), SIM_DELAY); };
+  const simSchedule = (rec) => { const h = optHold.find((x) => x.id === rec.id && x.dir === rec.dir); if (h) h.endAt = h.until = Date.now() + SIM_DELAY; setTimeout(() => simSettle(rec), SIM_DELAY); };
   function simNext() {
     if (simCur || !simQueue.length) return;
     const res = simCur = simQueue.shift(), el = $('optpush'), { o, it } = res, nm = `${PO.holdName[res.dir]} ${it.navTitle}`;
