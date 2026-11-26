@@ -387,7 +387,7 @@
     const grid = card.closest('.cond-grid') || $('cond-grid'), ic = card.querySelector('.ci');
     const h = document.createElement('div');
     h.id = 'note-hint'; h.className = 'note-hint';
-    h.innerHTML = `<div class="nh-box">${NT.overview.hints[card.dataset.hint] || window.OPT.hints[card.dataset.hint] || window.PFD.dalio.hints[card.dataset.hint]}</div><svg class="nh-tail" width="16" height="10" viewBox="0 0 16 10" aria-hidden="true"><path d="M0 0H16L8 10Z" fill="rgba(18,18,18,.8)"/></svg>`;
+    h.innerHTML = `<div class="nh-box">${NT.overview.hints[card.dataset.hint] || opHint(card.dataset.hint) || window.PFD.dalio.hints[card.dataset.hint]}</div><svg class="nh-tail" width="16" height="10" viewBox="0 0 16 10" aria-hidden="true"><path d="M0 0H16L8 10Z" fill="rgba(18,18,18,.8)"/></svg>`;
     grid.appendChild(h);
     h.style.top = (card.offsetTop - h.offsetHeight - 4) + 'px';
     h.querySelector('.nh-tail').style.left = (ic.offsetLeft - 16) + 'px';
@@ -666,21 +666,29 @@
       <path d="${pts(Math.max(-2, yd - 11))}" fill="none" stroke="var(--op-up)" stroke-width="1.5" stroke-dasharray="3 3"/><path d="${pts(Math.min(25, yd + 9))}" fill="none" stroke="var(--op-dn)" stroke-width="1.5" stroke-dasharray="3 3"/>
       <circle cx="${d0}" cy="${yd.toFixed(1)}" r="4" fill="var(--content-primary)"/></svg>`;
   };
+  // цены контрактов (сумма «рост» + «падение» = 1 $): доходность = (1 − цена) / цена, шанс = цена
+  const opIncome = (p) => Math.round((1 - p) / p * 100), opCh = (p) => Math.round(p * 100), opP = (p) => p.toFixed(2).replace('.', ',');
+  const opNum = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, NBS);
+  let opCur = null;
+  const opDerive = (o, it) => ({ ...o, nameShort: it.navTitle, price: stNum(it.price, 0), ref: stNum(o.strike, 0), pUpTxt: opP(o.pUp), pDnTxt: opP(o.pDn),
+    incUp: opIncome(o.pUp), incDn: opIncome(o.pDn), chUp: opCh(o.pUp), chDn: opCh(o.pDn), profUpTxt: opP(1 - o.pUp), profDnTxt: opP(1 - o.pDn) });
+  const opHint = (k) => { const h = window.OPT.hints[k]; return typeof h === 'function' ? h(opCur) : h; };
   const opCard = (id, short) => {
-    const o = OPT.items[id], it = ST.items[o.und];
+    const o = OPT.items[id], it = ST.items[o.und], iu = opIncome(o.pUp), id2 = opIncome(o.pDn);
     return `<button class="op-li tap" data-op-open="${id}">
       <span class="instr op-ih">${logoHtml(it.logo)}<span class="data">
         <span class="row"><span class="name">${o.name}</span><span class="price">${stMoney(it.price, it)}</span></span>
-        <span class="row"><span class="ticker">${OPT.L.until} ${o.expiryShort}</span><span class="ticker">${OPT.L.strikeWord} ${stNum(o.strike, 0)}${NBS}$</span></span></span></span>
+        <span class="row"><span class="ticker">${OPT.L.until} ${o.expiryShort}</span><span class="ticker">${OPT.L.refShort} ${stNum(o.strike, 0)}${NBS}$</span></span></span></span>
       <span class="op-sp">${opSpark(o, it)}</span>
-      <span class="op-tags">${short ? `<span class="op-tag">На рост +${o.up.income}%</span><span class="op-tag">На падение +${o.down.income}%</span>`
-        : `<span class="op-tag">${OPT.L.tagUp} ${o.up.income}${NBS}%</span><span class="op-tag">${OPT.L.tagDn} ${o.down.income}${NBS}%</span>`}</span></button>`;
+      <span class="op-tags">${short ? `<span class="op-tag">На рост +${iu}%</span><span class="op-tag">На падение +${id2}%</span>`
+        : `<span class="op-tag">${OPT.L.tagUp} ${iu}%</span><span class="op-tag">${OPT.L.tagDn} ${id2}%</span>`}</span></button>`;
   };
   $('screen-options').innerHTML = `
     <div class="note-nav"><button class="back tap" data-back="options" aria-label="Назад"><i></i></button><b>${OPT.listTitle}</b><span class="sp"></span></div>
     <div class="note-scroll" id="op-scroll">
-      <div class="op-head"><h1>${OPT.head}</h1><p>${OPT.sub}</p></div>
-      <div class="op-list">${OPT.order.map((id) => opCard(id, true)).join('')}</div>
+      <div class="op-head"><h1>${OPT.head}</h1></div>
+      <div class="op-steps-w"><div class="op-steps"><h3>${OPT.list.title}</h3>${OPT.list.steps.map(([ic, t, d]) => `<div class="op-st"><span class="op-si"><img src="${A}opt/${ic}" alt=""></span><div><b>${t}</b><span>${d}</span></div></div>`).join('')}</div></div>
+      <div class="op-list">${OPT.order.map((id) => opCard(id, false)).join('')}</div>
     </div>`;
   function openOption(id) {
     const o = OPT.items[id]; optMode = id; stockId = o.und; stockTab = 'overview';
@@ -688,30 +696,33 @@
   }
   function optionOverview(o, it) {
     const L = OPT.L, S = OPT.scen, news = it.news.concat(stockMore[stockId] ? it.moreNews : []), pm = (n) => stNum(n, 0) + NBS + '$';
-    const info = '<i class="ci"></i>';
-    const wide = (key, name, op) => `<div class="cond-r"><div class="cond hintable" data-hint="${key}"><div><div class="lb"><span>${name}</span>${info}</div><div class="op-v"><b>${L.income} ${op.income}${NBS}%</b><span class="tag-xs ${key === 'up' ? 'success' : 'negative'}">${L.probHint} ${op.prob.toLowerCase()}</span></div></div></div></div>`;
-    const scen = (k, sc, op, args, sign) => `<div class="section-pad"><div class="card op-card">
-        <h3>${sc.title}</h3>
-        <div class="op-r"><span>${sc.get}</span><b>${sc.cond.replace('>', '&gt;').replace('<', '&lt;')}${NBS}${pm(o.strike)}</b></div>
-        <div class="op-r"><span class="w">${sc.prob}</span><b class="${k === 'up' ? 'pos' : 'neg'}">${op.prob === 'Высокая' || op.prob === 'Низкая' ? op.prob : op.prob}</b></div>
-        <div class="op-r"><span>${sc.income}</span><b>${op.income}${NBS}%</b></div>
-        <h3>${sc.args}</h3>${args.map((a) => `<div class="op-a"><i></i><p>${a}</p></div>`).join('')}
+    const d = opCur = opDerive(o, it), info = '<i class="ci"></i>', q = 1000;
+    const wide = (key, name, p, tagCls) => `<div class="cond-r"><div class="cond hintable" data-hint="${key}"><div><div class="lb"><span>${name} · ${opP(p)}${NBS}$ ${S.perPiece}</span>${info}</div><div class="op-v"><b>${L.yield} ${opIncome(p)}%</b><span class="tag-xs ${tagCls}">${L.chance} ${opCh(p)}%</span></div></div></div></div>`;
+    const row = (l, r, cls) => `<div class="op-r"><span>${l}</span><b${cls ? ` class="${cls}"` : ''}>${r}</b></div>`;
+    const scen = (k, p, args) => `<div class="section-pad"><div class="card op-card">
+        <h3>${S.cond[k](d)}</h3>
+        ${row(S.price, `${opP(p)}${NBS}$ ${S.perPiece}`)}${row(S.payout, `1${NBS}$ ${S.perPiece}`)}${row(S.chance, `${opCh(p)}%`)}${row(S.profit, `+${opP(1 - p)}${NBS}$ (+${opIncome(p)}%)`)}
+        <h3>${S.exTitle(opNum(q))}</h3>
+        ${row(S.win, `${opNum(q * p)}${NBS}$ → ${opNum(q)}${NBS}$`, 'pos')}${row(S.lose, `${opNum(q * p)}${NBS}$ → 0${NBS}$`, 'neg')}
+        <h3>${S.args[k]}</h3>${args.map((a) => `<div class="op-a"><i></i><p>${a}</p></div>`).join('')}
       </div></div>`;
     const rows = it.metrics.map(([a, b]) => `<div class="st-row"><span>${a}</span><b>${b}</b></div>`).join('');
     return `
       <div class="st-card st-price">
         <div class="st-ph"><div class="st-p">${stMoney(it.price, it)}</div>
           <div class="st-pm"><span class="tag success">↑${NBS}${stNum(it.dayChange, it.decimals)}${NBS}${it.cur}${NBS}(${stNum(it.dayPct, 2)}${NBS}%)</span><span>${L.day}</span></div></div>
-        <div class="st-cw op-cw"><i class="gl" style="top:11px"></i><i class="gl" id="op-gs"></i><i class="gl" style="top:215px"></i><div class="st-chart" id="op-chart"></div><span class="op-chip" id="op-chip">${L.strikeChip}${NBS}${pm(o.strike)}</span></div>
+        <div class="st-cw op-cw"><i class="gl" style="top:11px"></i><i class="gl" id="op-gs"></i><i class="gl" style="top:215px"></i><div class="st-chart" id="op-chart"></div><span class="op-chip" id="op-chip">${L.refShort}${NBS}${pm(o.strike)}</span></div>
       </div>
+      <div class="cond-grid op-g"><div class="cond-r"><div class="cond hintable op-qc" data-hint="q"><div><div class="lb"><span>${OPT.q.label}</span>${info}</div><h3>${OPT.q.title(d)}</h3><p>${OPT.q.text(d)}</p></div></div></div></div>
       <div class="cond-grid op-g">
         <div class="cond-r"><div class="cond hintable" data-hint="end"><div><div class="lb"><span>${L.end}</span>${info}</div><b>${o.expiry}</b></div></div>
-          <div class="cond hintable" data-hint="strike"><div><div class="lb"><span>${L.strike}</span>${info}</div><b>${pm(o.strike)}</b></div></div></div>
-        ${wide('up', L.upName, o.up)}${wide('dn', L.dnName, o.down)}
+          <div class="cond hintable" data-hint="strike"><div><div class="lb"><span>${L.ref}</span>${info}</div><b>${pm(o.strike)}</b></div></div></div>
+        ${wide('up', L.upName, o.pUp, 'success')}${wide('dn', L.dnName, o.pDn, 'negative')}
       </div>
       <div class="section-pad"><div class="card op-card"><h3 class="b">${OPT.what.title}</h3><p>${OPT.what.text}</p><button class="txt-btn tap" data-op-more>${OPT.what.more}</button></div></div>
       <div class="header"><h2>${OPT.scenTitle}</h2></div>
-      ${scen('up', S.up, o.up, o.argsUp)}${scen('dn', S.dn, o.down, o.argsDown)}
+      ${scen('up', o.pUp, o.argsUp)}${scen('dn', o.pDn, o.argsDown)}
+      <div class="section-pad"><div class="card op-card"><h3>${OPT.terms.title}</h3>${OPT.terms.rows(d).map(([l, r]) => row(l, r)).join('')}</div></div>
       <button class="header tap" data-st-go="about"><h2>${ST.aboutTitle}</h2><img src="${A}imgChevronForwardM.svg" alt=""></button>
       <div class="section-pad"><div class="card st-about">
         <div class="st-ah"><div class="instr st-logo">${logoHtml(it.logo)}</div><b>${it.title}</b></div>
@@ -720,6 +731,7 @@
         <h3 class="st-h3">${ST.metricsTitle}</h3>${rows}
         <div class="st-allm"><button class="more-btn tap" data-st-go="about">${ST.allMetrics}</button></div>
       </div></div>
+      <div class="section-pad"><div class="card op-card"><h3>${OPT.risk.title}</h3><p>${OPT.risk.text}</p></div></div>
       <div class="header"><h2>${ST.newsTitle}</h2></div>
       <div class="news-cards" id="st-news">${news.map(stNewsCard).join('')}</div>
       ${stockMore[stockId] ? '' : `<div class="st-more"><button class="ghost-btn tap" id="st-more">${ST.loadMore}</button></div>`}`;
@@ -754,11 +766,11 @@
   }
   function renderOptSheet() {
     const o = OPT.items[optMode || OPT.order[0]], it = ST.items[o.und], M = OPT.modal;
-    const ex = M.ex({ ...o, nameShort: it.navTitle, price: stNum(it.price, 0), strike: stNum(o.strike, 0) });
+    const dd = opDerive(o, it), ex = M.ex(dd);
     sheetEl.innerHTML = `
       <div class="sh-head"><h2>${M.title}</h2><button class="sh-x tap" data-close-sheet aria-label="Закрыть"><img src="${A}search/cross.svg" alt=""></button></div>
       <div class="sh-scroll op-md">
-        ${M.blocks.map(([h, ps]) => `<h3>${h}</h3>${ps.map((p) => `<p>${p}</p>`).join('')}`).join('')}
+        ${M.blocks.map(([h, ps]) => `<h3>${h}</h3>${ps.map((p) => `<p>${p.replace('{name}', dd.nameShort).replace('{date}', dd.expiry).replace('{ref}', dd.ref)}</p>`).join('')}`).join('')}
         <h3>${M.exTitle}</h3>${ex.map(([h, p]) => `<div class="op-ex"><b>${h}</b><p>${p}</p></div>`).join('')}
         <p class="op-note">${M.note}</p>
       </div>
@@ -899,14 +911,21 @@
         </div></div>
       <div class="pb-amount" id="pb-amount">
         <div class="pb-lab" id="pb-lab">${PB.label}</div>
-        <label class="pb-row-in" for="pb-input"><input id="pb-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="0" aria-label="${PB.label}"><span class="pb-cur">$</span><span class="pb-mirror" id="pb-mirror" aria-hidden="true"></span></label>
+        <div class="pb-inrow">
+          <label class="pb-row-in" for="pb-input"><input id="pb-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="0" aria-label="${PB.label}"><span class="pb-cur" id="pb-cur">$</span><span class="pb-mirror" id="pb-mirror" aria-hidden="true"></span></label>
+          <div class="pb-step" id="pb-step" hidden><button class="tap" data-pb-step="-1" aria-label="Меньше"><i></i></button><span></span><button class="tap" data-pb-step="1" aria-label="Больше"><i class="p"></i></button></div>
+        </div>
         <i class="pb-div"></i>
-        <div class="pb-hint" id="pb-hint">${PB.hint}</div>
+        <div class="pb-hintrow"><div class="pb-hint" id="pb-hint">${PB.hint}</div><div class="pb-hint" id="pb-hint2" hidden></div></div>
       </div>
-      <div class="pb-cell"><div class="pb-sum">
+      <div class="pb-cell"><div class="pb-sum" id="pb-sum">
         <div class="pb-sh"><span class="pb-sic"><img src="${A}pbuy/green.svg" alt=""><img class="g" src="${A}pbuy/list.svg" alt=""></span><div><div class="pb-cap">${PB.sumLabel}</div><b id="pb-sname">${PB.name}</b></div></div>
+        <div class="pb-sr oo"><span>${window.PBOPT.rows.price}</span><span id="pb-price">~</span></div>
         <div class="pb-sr"><span id="pb-qlab">${PB.qty}</span><span id="pb-qty">~</span></div>
+        <div class="pb-sr oo"><span>${window.PBOPT.rows.sum}</span><span id="pb-sumv">~</span></div>
         <div class="pb-sr"><span>${PB.fee}</span><span id="pb-fee">~</span></div>
+        <div class="pb-sr oo"><span>${window.PBOPT.rows.win}</span><span id="pb-win">~</span></div>
+        <div class="pb-sr oo"><span>${window.PBOPT.rows.lose}</span><span id="pb-lose">~</span></div>
         <div class="pb-sr t"><b>${PB.total}</b><b id="pb-tot">= 0 $</b></div>
       </div></div>
     </div>
@@ -914,16 +933,26 @@
   const PO = window.PBOPT;
   let pbMode = 'pf', pbDir = 'up'; // 'pf' — именной портфель, 'opt' — событийный опцион (рост/падение)
   const pbMin = () => pbMode === 'opt' ? PO.min : PB.min;
+  // опцион, который сейчас покупают (открыт со страницы опциона), и цена контракта выбранной стороны
+  const pbOptCur = () => { const o = OPT.items[optMode || OPT.order[0]]; return { o, it: ST.items[o.und] }; };
+  const pbPrice = () => { const { o } = pbOptCur(); return pbDir === 'up' ? o.pUp : o.pDn; };
+  const pbOptName = () => `${PO.holdName[pbDir]} ${pbOptCur().it.navTitle}`;
+  const pbMaxQty = () => Math.max(0, Math.floor(PB.balance / (pbPrice() + PO.fee) + 1e-9)); // сколько контрактов хватает по свободным средствам вместе с комиссией
   const renderPbTop = () => {
-    const opt = pbMode === 'opt';
+    const opt = pbMode === 'opt', oc = opt ? pbOptCur() : null;
     $('pb-top').innerHTML = (opt ? `
       <div class="pb-cell pb-segw"><div class="pb-seg" role="tablist">${['down', 'up'].map((d) => `<button class="tap${d === pbDir ? ' on ' + d : ''}" data-pb-dir="${d}" role="tab">${PO.seg[d === 'up' ? 0 : 1]}</button>`).join('')}</div></div>` : '') + `
       <div class="pb-cell"><div class="pb-card">
-        ${opt ? `<img class="pb-flag" src="${A}pbuy/nvidia48.png" alt="">` : `<span class="pb-ic"><span class="pk" style="--c:${PD.iconBg}"></span><img class="g" src="${A}pbuy/briefcase.svg" alt=""></span>`}
-        <div class="pb-tx"><div class="pb-row"><b id="pb-iname">${opt ? PO.sumName[pbDir] : PB.name}</b><span>${opt ? PO.from : PB.from}</span></div>${opt ? `<span class="pb-hint">${PO.ticker}</span>` : ''}</div></div></div>`;
-    $('pb-sname').textContent = opt ? PO.sumName[pbDir] : PB.name;
-    $('pb-qlab').textContent = opt ? PO.qty : PB.qty;
-    $('pb-hint').textContent = opt ? PO.hint : PB.hint;
+        ${opt ? (oc.o.und === 'NVDA' ? `<img class="pb-flag" src="${A}pbuy/nvidia48.png" alt="">` : `<span class="pb-lg">${logoHtml(oc.it.logo)}</span>`) : `<span class="pb-ic"><span class="pk" style="--c:${PD.iconBg}"></span><img class="g" src="${A}pbuy/briefcase.svg" alt=""></span>`}
+        <div class="pb-tx"><div class="pb-row"><b id="pb-iname">${opt ? pbOptName() : PB.name}</b><span>${opt ? PO.from : PB.from}</span></div>${opt ? `<span class="pb-hint">${oc.it.ticker}</span>` : ''}</div></div></div>`;
+    $('pb-sname').textContent = opt ? pbOptName() : PB.name;
+    $('pb-qlab').textContent = opt ? PO.rows.qty : PB.qty;
+    $('pb-lab').textContent = opt ? PO.label : PB.label;
+    $('pb-cur').textContent = opt ? PO.unit : '$';
+    $('pb-step').hidden = !opt; $('pb-hint2').hidden = !opt;
+    $('pb-hint').textContent = opt ? `${opP(pbPrice())} $ за контракт` : PB.hint;
+    $('pb-hint2').textContent = opt ? PO.hintMin : '';
+    if (opt) $('pb-sum').dataset.o = '1'; else $('pb-sum').removeAttribute('data-o');
   };
   const pbIn = $('pb-input');
   const pbFmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
@@ -931,7 +960,7 @@
   const pbPlural = (q) => Number.isInteger(q) ? (q % 10 === 1 && q % 100 !== 11 ? 'портфель' : (q % 10 >= 2 && q % 10 <= 4 && (q % 100 < 12 || q % 100 > 14) ? 'портфеля' : 'портфелей')) : 'портфеля';
   const pbState = (s) => { // '' | empty | min | max — подпись и разделитель красные в ошибке
     $('pb-amount').dataset.err = s ? '1' : '';
-    $('pb-lab').textContent = s === 'min' ? (pbMode === 'opt' ? PO.errMin : PB.errMin) : s === 'max' ? PB.errMax : PB.label;
+    $('pb-lab').textContent = s === 'min' ? (pbMode === 'opt' ? PO.errMin : PB.errMin) : s === 'max' ? (pbMode === 'opt' ? PO.errMax(pbFmt(pbMaxQty())) : PB.errMax) : (pbMode === 'opt' ? PO.label : PB.label);
   };
   const pbFit = () => { // ширина поля по значению, «$» остаётся рядом как лейбл
     $('pb-mirror').textContent = pbIn.value || pbIn.placeholder;
@@ -939,16 +968,32 @@
     $('pb-amount').dataset.filled = pbIn.value ? '1' : '';
   };
   const pbMoney = (n) => { const r = Math.round(n * 100) / 100; const [i, f] = String(r).split('.'); return pbFmt(i) + (f ? ',' + f.padEnd(2, '0') : ''); };
-  const pbSum = () => { // расчёт показываем с минимальной суммы, в т.ч. сверх баланса (ошибка — на потере фокуса)
-    const v = pbVal(), ok = v >= pbMin(), fee = v * PB.commission;
-    const q = Math.round(v / PB.min * 100) / 100;
-    $('pb-qty').textContent = ok ? (pbMode === 'opt' ? `${pbMoney(v)} $` : `${String(q).replace('.', ',')} ${pbPlural(q)}`) : '~';
+  const pbStepSync = () => { // доступность кнопок степпера: «−» выключен при пустом поле, «+» — при достижении максимума
+    if (pbMode !== 'opt') return;
+    const v = pbVal(), bt = $('pb-step').querySelectorAll('button');
+    bt[0].classList.toggle('off', v === 0); bt[1].classList.toggle('off', v >= pbMaxQty());
+  };
+  const pbSum = () => { // расчёт показываем с минимального количества, в т.ч. сверх баланса (ошибка — на потере фокуса)
+    const v = pbVal(), ok = v >= pbMin();
+    if (pbMode === 'opt') {
+      const pr = pbPrice(), sum = v * pr, fee = Math.round(v * PO.fee * 100) / 100;
+      $('pb-price').textContent = `${opP(pr)} $`;
+      $('pb-qty').textContent = ok ? `${pbFmt(v)} шт.` : '~';
+      $('pb-sumv').textContent = ok ? `${pbMoney(sum)} $` : '~';
+      $('pb-fee').textContent = ok ? `${pbMoney(fee)} $` : '~';
+      $('pb-win').textContent = ok ? `${pbMoney(v)} $` : '~';
+      $('pb-lose').textContent = ok ? '0 $' : '~';
+      $('pb-tot').textContent = `= ${ok ? pbMoney(sum + fee) : 0} $`;
+      pbStepSync(); return;
+    }
+    const fee = v * PB.commission, q = Math.round(v / PB.min * 100) / 100;
+    $('pb-qty').textContent = ok ? `${String(q).replace('.', ',')} ${pbPlural(q)}` : '~';
     $('pb-fee').textContent = ok ? `${pbMoney(fee)} $` : '~';
     $('pb-tot').textContent = `= ${ok ? pbMoney(v + fee) : 0} $`;
   };
-  const pbValidate = () => { const v = pbVal(); pbState(!pbIn.value ? '' : v < pbMin() ? 'min' : v * (1 + PB.commission) > PB.balance ? 'max' : ''); };
+  const pbValidate = () => { const v = pbVal(); pbState(!pbIn.value ? '' : v < pbMin() ? 'min' : (pbMode === 'opt' ? v > pbMaxQty() : v * (1 + PB.commission) > PB.balance) ? 'max' : ''); };
   pbIn.addEventListener('input', () => {
-    const d = pbIn.value.replace(/\D/g, '').replace(/^0+/, '').slice(0, 9);
+    const d = pbIn.value.replace(/\D/g, '').replace(/^0+/, '').slice(0, pbMode === 'opt' ? 7 : 9);
     pbIn.value = d ? pbFmt(d) : '';
     pbState(''); pbFit(); pbSum();
   });
@@ -960,18 +1005,18 @@
     const v = pbVal();
     if (!pbIn.value) { pbState('empty'); return; }
     pbValidate();
-    if (v >= pbMin() && v * (1 + PB.commission) <= PB.balance) openPbuyDone();
+    if (v >= pbMin() && (pbMode === 'opt' ? v <= pbMaxQty() : v * (1 + PB.commission) <= PB.balance)) openPbuyDone();
   };
   const DN = PD.done;
   const renderPbDone = () => {
     const opt = pbMode === 'opt';
     $('screen-pfdone').innerHTML = `
     <div class="pd-content">
-      <div class="pd-g${opt ? ' o' : ''}">${opt ? `<div class="pd-og"><img src="${A}pbuy/nvidia88.png" alt=""><span class="pd-badge"><img src="${A}pbuy/badge.svg" alt=""></span></div>` : `<img src="${A}pbuy/done.png" alt="">`}</div>
-      <div class="pd-text"><h1 class="pd-t">${DN.title}</h1><p class="pd-s">${DN.sub}</p></div>
+      <div class="pd-g${opt ? ' o' : ''}">${opt ? `<div class="pd-og">${pbOptCur().o.und === 'NVDA' ? `<img src="${A}pbuy/nvidia88.png" alt="">` : `<span class="pd-ol">${logoHtml(pbOptCur().it.logo)}</span>`}<span class="pd-badge"><img src="${A}pbuy/badge.svg" alt=""></span></div>` : `<img src="${A}pbuy/done.png" alt="">`}</div>
+      <div class="pd-text"><h1 class="pd-t">${DN.title}</h1><p class="pd-s">${opt ? PO.doneSub : DN.sub}</p></div>
       <div class="pb-cell pd-c"><div class="pb-sum">
-        <div class="pb-sh"><span class="pb-sic"><img src="${A}pbuy/green.svg" alt=""><img class="g" src="${A}pbuy/list.svg" alt=""></span><div><div class="pb-cap">${DN.label}</div><b>${opt ? PO.sumName[pbDir] : PB.name}</b></div></div>
-        <div class="pb-sr"><span>${opt ? PO.qty : PB.qty}</span><span>${$('pb-qty').textContent}</span></div>
+        <div class="pb-sh"><span class="pb-sic"><img src="${A}pbuy/green.svg" alt=""><img class="g" src="${A}pbuy/list.svg" alt=""></span><div><div class="pb-cap">${DN.label}</div><b>${opt ? pbOptName() : PB.name}</b></div></div>
+        <div class="pb-sr"><span>${opt ? PO.doneQty : PB.qty}</span><span>${opt ? `${pbFmt(pbVal())} контрактов` : $('pb-qty').textContent}</span></div>
         <div class="pb-sr"><span>${PB.fee}</span><span>${$('pb-fee').textContent}</span></div>
         <div class="pb-sr t"><b>${PB.total}</b><b>${$('pb-tot').textContent}</b></div>
       </div></div>
@@ -1105,26 +1150,25 @@
   const openHeld = () => { pfhTab = 0; renderHeld(); go('pfheld'); pfChartFit(); }; // график считается после показа экрана: в скрытом у блока нет размеров (раньше линия не рисовалась до прокрутки)
   let pbFromHeld = false;
   // Опцион появляется первым среди бумаг площадки ITS (в макете строки нет — оформлена по образцу других бумаг)
-  const optHold = []; // { dir, amount }, последние покупки — в начале
+  const optHold = []; // { id, dir, qty, amount }: опцион, сторона, число контрактов, вложено без комиссии; последние покупки — в начале
   const renderOptHold = () => {
     const list = document.querySelector('#screen-portfolio .pf-card[data-pfi="0"] .list');
     const base = [...list.children].filter((r) => !r.classList.contains('opt-hold'));
     const rows = optHold.map((h) => {
       const t = document.createElement('div');
-      t.innerHTML = instr({ name: PO.holdName[h.dir], price: pbMoney(h.amount) + ' $', ticker: `До ${window.OPT.items.NVDA.expiry}`, delta: '', logo: 'logos/nvidia-sq.png' });
+      const oo = OPT.items[h.id], oi = ST.items[oo.und]; t.innerHTML = instr({ name: `${PO.holdName[h.dir]} ${oi.navTitle}`, price: pbMoney(h.amount) + ' $', ticker: `До ${oo.expiryShort} · ${pbFmt(h.qty)} шт.`, delta: '', logo: oi.logo });
       const row = t.firstElementChild; row.classList.add('opt-hold'); return row;
     });
     list.replaceChildren(...rows, ...base);
     [...list.children].forEach((r, i) => r.classList.toggle('extra', i >= 3)); // на виду по-прежнему три бумаги, остальные — под «Показать больше»
   };
   const openPbuyDone = () => {
-    const v = pbVal(), total = v + v * PB.commission;
+    const v = pbVal(), fee = pbMode === 'opt' ? Math.round(v * PO.fee * 100) / 100 : v * PB.commission, total = (pbMode === 'opt' ? v * pbPrice() : v) + fee; // опцион: количество × цена + комиссия
     PB.balance = Math.round((PB.balance - total) * 100) / 100; // списание со свободных средств ITS: сумма + комиссия
     const left = fmt2(PB.balance) + ' $'; PB.acc = left; PB.errMax = 'Доступно ' + left; $('pb-acc').textContent = left;
     if (pbMode === 'opt') {
-      const k = optHold.findIndex((h) => h.dir === pbDir);
-      const amount = (k >= 0 ? optHold.splice(k, 1)[0].amount : 0) + v; // в портфеле — вложенная сумма без комиссии (Figma 257:50831)
-      optHold.unshift({ dir: pbDir, amount }); renderOptHold();
+      const id = optMode || OPT.order[0], k = optHold.findIndex((h) => h.id === id && h.dir === pbDir), prev = k >= 0 ? optHold.splice(k, 1)[0] : { amount: 0, qty: 0 };
+      optHold.unshift({ id, dir: pbDir, qty: prev.qty + v, amount: prev.amount + v * pbPrice() }); renderOptHold(); // в портфеле — вложенная сумма без комиссии (Figma 257:50831)
     } else { renderPfNamed(v); pfHists[curPf].unshift({ total, qty: Math.round(v / PB.min * 100) / 100 }); }
     renderPbDone();
     const s = $('screen-pfdone'); s.classList.remove('play'); void s.offsetWidth; // перезапуск анимации появления
@@ -1691,7 +1735,13 @@
     if (e.target.closest('[data-back="pfbuy"]')) { $('pb-input').blur(); go(pbMode === 'opt' ? 'stock' : pbFromHeld ? 'pfheld' : 'pfdetail'); return; }
     if (e.target.closest('[data-pb-buy]')) { pbuyPress(); return; }
     const pdir = e.target.closest('[data-pb-dir]');
-    if (pdir) { pbDir = pdir.dataset.pbDir; renderPbTop(); return; }
+    if (pdir) { pbDir = pdir.dataset.pbDir; renderPbTop(); pbSum(); pbState(''); return; }
+    const pst = e.target.closest('[data-pb-step]');
+    if (pst) { // степпер количества контрактов: «+» с пустого поля сразу даёт минимум, «−» ниже минимума очищает поле
+      const v = pbVal(), up = +pst.dataset.pbStep > 0; let n = up ? (v < PO.min ? PO.min : v + PO.step) : (v <= PO.min ? 0 : v - PO.step);
+      if (up && n > pbMaxQty()) return;
+      pbIn.value = n ? pbFmt(n) : ''; pbState(''); pbFit(); pbSum(); return;
+    }
     if (e.target.closest('[data-pd-port]')) { go('portfolio'); return; }
     if (e.target.closest('[data-back="namedpf"]')) { go(pfnFrom); return; }
     if (e.target.closest('[data-opt]')) { go('options'); return; }

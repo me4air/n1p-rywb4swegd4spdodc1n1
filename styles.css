@@ -1245,3 +1245,32 @@ button.cur-chip { cursor: pointer; }
 
 /* иконка портфеля: форма из pink.svg, цвет — по портфелю (в тон баннера) */
 .pk { position: absolute; inset: 0; background: var(--c, #e9407a); -webkit-mask: url(assets/pbuy/pink.svg) center / 100% 100% no-repeat; mask: url(assets/pbuy/pink.svg) center / 100% 100% no-repeat; }
+
+/* ---- Событийные опционы (обновлено 2026-11-26): шаги «Как это работает?» на списке, вопрос события, покупка в штуках ---- */
+.op-steps-w { padding: 8px 16px; }
+.op-steps { padding: 8px 0; background: var(--bg-main); border-radius: var(--r-l); }
+.op-steps h3 { margin: 0; padding: 8px 16px; font: 600 18px/28px Roboto; }
+.op-st { display: flex; gap: 16px; align-items: flex-start; padding: 8px 16px; }
+.op-si { flex: none; display: flex; align-items: center; justify-content: center; width: 24px; height: 42px; }
+.op-si img { display: block; width: 24px; height: 24px; }
+.op-st b { display: block; font: 600 16px/24px Roboto; }
+.op-st span:not(.op-si) { display: block; font: 400 14px/20px Roboto; color: var(--content-secondary); }
+.op-qc h3 { margin: 4px 0 8px; padding: 0; font: 600 18px/28px Roboto; }
+.op-qc p { margin: 0; padding: 0; font: 400 14px/20px Roboto; color: var(--content-secondary); }
+.pb-inrow { display: flex; align-items: center; gap: 12px; }
+.pb-inrow .pb-row-in { flex: 1; min-width: 0; }
+.pb-step { flex: none; display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: var(--bg-primary); border-radius: var(--r-xs); }
+.pb-step[hidden] { display: none; }
+.pb-step button { position: relative; width: 24px; height: 24px; padding: 0; background: none; }
+.pb-step i { position: absolute; left: 3px; right: 3px; top: 50%; height: 2px; margin-top: -1px; border-radius: 1px; background: var(--content-action); }
+.pb-step i.p::after { content: ''; position: absolute; left: 50%; top: -9px; bottom: -9px; width: 2px; margin-left: -1px; border-radius: 1px; background: inherit; }
+.pb-step button.off { pointer-events: none; } .pb-step button.off i { background: var(--content-disabled); }
+.pb-step span { width: 1px; height: 18px; background: var(--stroke-secondary); }
+.pb-hintrow { display: flex; justify-content: space-between; gap: 16px; }
+.pb-hintrow .pb-hint[hidden] { display: none; }
+.pb-hintrow #pb-hint2 { text-align: right; white-space: pre; }
+.pb-sum:not([data-o]) .oo { display: none; }
+.pb-lg { flex: none; display: block; width: 48px; height: 48px; }
+.pb-lg .logo { display: block; width: 48px; height: 48px; }
+.pd-ol { display: block; position: relative; width: 88px; height: 88px; }
+.pd-ol > .logo { position: absolute; left: 0; top: 0; transform: scale(1.8333); transform-origin: 0 0; width: 48px; height: 48px; }
