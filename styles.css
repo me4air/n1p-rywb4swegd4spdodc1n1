@@ -1302,8 +1302,12 @@ button.cur-chip { cursor: pointer; }
 .or-c { flex: 1; }
 .or-l { display: block; }
 .optres .pd-og > img, .or-l.or-l, .optres .pd-og .or-l { width: 88px; height: 88px; border-radius: 22px; overflow: hidden; }
-.optres .pd-badge { background: var(--bg-main); border-radius: 50%; padding: 0; border: 4px solid var(--bg-main); }
-.optres .pd-badge img { width: 28px; height: 28px; }
+.optres .pd-badge { left: 68.5px; top: 62px; padding: 4px; border: 4px solid var(--bg-main); border-radius: 41px; background: var(--bg-success-light); }
+.optres .pd-badge.neg { background: var(--bg-negative-light); }
+.optres .pd-badge img { width: 16px; height: 16px; margin: 2px; }
+.optres .or-c { display: flex; flex-direction: column; padding-bottom: 16px; box-sizing: border-box; position: absolute; left: 0; right: 0; top: 0; height: calc(100% - 114px); justify-content: center; } /* контент центрируется в области над кнопкой, как в макете (698 из 812) */
+.optres .or-nav { position: relative; z-index: 1; }
+.optres .pd-b { position: absolute; left: 0; right: 0; bottom: 0; }
 .optres .pb-sr.t b.pos { color: var(--content-success); }
 .optres .pd-b button { background: var(--bg-action-base, var(--content-action)); }
 @media (prefers-reduced-motion: reduce) { .optpush.in, .optpush.out { animation-duration: .01s; } .optres { transition: none; } }
