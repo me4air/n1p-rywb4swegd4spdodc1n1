@@ -581,16 +581,20 @@
   }
   // ---------- Стакан: демо-данные, детерминированные по тикеру ----------
   const BK_N = 25; // уровней цен в каждую сторону
-  function stockBook(it) {
-    const r = stRng(it.ticker + 'book'), t = it.tick, L = ST.bookLabels, vol = [];
-    for (let i = 0; i < BK_N * 2; i++) vol.push(Math.max(1, Math.round(r() * r() * 600)));
-    const asks = vol.slice(0, BK_N), bids = vol.slice(BK_N), max = Math.max(...vol);
-    const row = (cls, price, v) => `<div class="bk-row ${cls}"><i style="width:${Math.max(3, v / max * 55).toFixed(1)}%"></i><span class="bk-b">${cls === 'bid' ? stNum(v, 0) : ''}</span><span class="bk-p">${stNum(price, it.decimals)}</span><span class="bk-s">${cls === 'ask' ? stNum(v, 0) : ''}</span></div>`;
+  let opBookDir = 'up'; // направление стакана опциона: контракты «на рост» / «на падение»
+  function stockBook(it0, op) {
+    // у опциона свой стакан по контракту выбранного направления: цены вокруг цены контракта, шаг 0,01 $, объёмы — в контрактах
+    const it = op ? { ...it0, ticker: op.und + opBookDir, price: opBookDir === 'up' ? op.pUp : op.pDn, tick: 0.01, decimals: 2, cur: '$' } : it0;
+    const r = stRng(it.ticker + 'book'), t = it.tick, L = ST.bookLabels, vol = [], k = op ? 10 : 1;
+    for (let i = 0; i < BK_N * 2; i++) vol.push(Math.max(1, Math.round(r() * r() * 600)) * k);
+    const asks = vol.slice(0, BK_N), bids = vol.slice(BK_N), max = Math.max(...vol), pr = (n) => +n.toFixed(4);
+    const row = (cls, price, v) => `<div class="bk-row ${cls}"><i style="width:${Math.max(3, v / max * 55).toFixed(1)}%"></i><span class="bk-b">${cls === 'bid' ? stNum(v, 0) : ''}</span><span class="bk-p">${stNum(pr(price), it.decimals)}</span><span class="bk-s">${cls === 'ask' ? stNum(v, 0) : ''}</span></div>`;
     let h = '';
     for (let i = BK_N; i >= 1; i--) h += row('ask', it.price + t * i, asks[i - 1]);
     h += '<div class="bk-mid" id="bk-mid"></div>'; // граница покупки и продажи
     for (let i = 1; i <= BK_N; i++) h += row('bid', it.price - t * i, bids[i - 1]);
-    return `<div class="bk"><div class="bk-head"><span>${L[0]}</span><span>${L[1]} ${it.cur}</span><span>${L[2]}</span></div><div class="bk-list" id="bk-list">${h}</div></div>`;
+    const seg = op ? `<div class="pb-segw bk-seg"><div class="pb-seg" role="tablist">${['down', 'up'].map((d) => `<button class="tap${d === opBookDir ? ' on ' + d : ''}" data-bk-dir="${d}" role="tab">${window.PBOPT.bookSeg[d]}</button>`).join('')}</div></div>` : '';
+    return `<div class="bk">${seg}<div class="bk-head"><span>${L[0]}</span><span>${L[1]} ${it.cur}</span><span>${L[2]}</span></div><div class="bk-list" id="bk-list">${h}</div></div>`;
   }
   function stBookCenter() { // граница покупки и продажи — по центру видимой области
     const l = $('bk-list'), m = $('bk-mid'); if (!l || !m) return;
@@ -608,7 +612,7 @@
     $('st-title').textContent = op ? op.name : it.navTitle; $('st-sub').textContent = it.ticker;
     $('screen-stock').classList.toggle('opt', !!op); $('st-trade').querySelector('.buy').textContent = op ? OPT.buyUp : ST.buy; $('st-trade').querySelector('.sell').textContent = op ? OPT.buyDown : ST.sell;
     $('screen-stock').classList.toggle('book', stockTab === 'book'); $('screen-stock').classList.toggle('wbar', stockTab === 'book' || stockTab === 'divs' || stockTab === 'hist');
-    $('st-body').innerHTML = stockTab === 'overview' ? (op ? optionOverview(op, it) : stockOverview(it)) : stockTab === 'book' ? stockBook(it) : stockTab === 'about' ? stockAbout(it) : stockTab === 'divs' ? stockDivs(it) : stockTab === 'hist' ? stockHist(it) : `<div class="st-empty">${ST.empty}</div>`;
+    $('st-body').innerHTML = stockTab === 'overview' ? (op ? optionOverview(op, it) : stockOverview(it)) : stockTab === 'book' ? stockBook(it, op ? opDerive(op, it) : null) : stockTab === 'about' ? stockAbout(it) : stockTab === 'divs' ? stockDivs(it) : stockTab === 'hist' ? stockHist(it) : `<div class="st-empty">${ST.empty}</div>`;
     if (stockTab === 'book') { stBookCenter(); requestAnimationFrame(stBookCenter); }
     if (stockTab === 'overview') { if (op) renderOptChart(op, it); else { renderStockChart(); stChartPointer($('st-chart')); } }
   }
@@ -632,6 +636,7 @@
     if (sg) { stockTab = sg.dataset.stGo; renderStock(); sc.scrollTop = 0; return; }
     const tb = e.target.closest('.st-chip');
     if (tb) { stockTab = tb.dataset.st; renderStock(); sc.scrollTop = 0; return; } // вкладка всегда прилипла сверху — скролл ровно до неё
+    const bd = e.target.closest('[data-bk-dir]'); if (bd) { opBookDir = bd.dataset.bkDir; renderStock(); return; }
     const rb = e.target.closest('.st-range'); if (rb) { stockRange = rb.dataset.rg; renderStockChart(); return; }
     if (e.target.closest('#st-more')) { stockMore[stockId] = true; const mb = e.target.closest('.st-more'); $('st-news').insertAdjacentHTML('beforeend', ST.items[stockId].moreNews.map(stNewsCard).join('')); mb.remove(); return; }
     if (e.target.closest('#st-fav')) {
@@ -691,7 +696,7 @@
       <div class="op-list">${OPT.order.map((id) => opCard(id, false)).join('')}</div>
     </div>`;
   function openOption(id) {
-    const o = OPT.items[id]; optMode = id; stockId = o.und; stockTab = 'overview';
+    const o = OPT.items[id]; optMode = id; stockId = o.und; stockTab = 'overview'; opBookDir = 'up';
     renderStock(); go('stock'); $('st-scroll').scrollTop = 0; renderOptChart(o, ST.items[o.und]);
   }
   function optionOverview(o, it) {
@@ -1150,6 +1155,7 @@
   const openHeld = () => { pfhTab = 0; renderHeld(); go('pfheld'); pfChartFit(); }; // график считается после показа экрана: в скрытом у блока нет размеров (раньше линия не рисовалась до прокрутки)
   let pbFromHeld = false;
   // Опцион появляется первым среди бумаг площадки ITS (в макете строки нет — оформлена по образцу других бумаг)
+  let simPending = null; // покупка опциона, ждущая нажатия «В портфель»
   const optHold = []; // { id, dir, qty, amount }: опцион, сторона, число контрактов, вложено без комиссии; последние покупки — в начале
   const renderOptHold = () => {
     const list = document.querySelector('#screen-portfolio .pf-card[data-pfi="0"] .list');
@@ -1169,6 +1175,7 @@
     if (pbMode === 'opt') {
       const id = optMode || OPT.order[0], k = optHold.findIndex((h) => h.id === id && h.dir === pbDir), prev = k >= 0 ? optHold.splice(k, 1)[0] : { amount: 0, qty: 0 };
       optHold.unshift({ id, dir: pbDir, qty: prev.qty + v, amount: prev.amount + v * pbPrice() }); renderOptHold(); // в портфеле — вложенная сумма без комиссии (Figma 257:50831)
+      simPending = { id, dir: pbDir, qty: v, amount: v * pbPrice() }; // таймер 30 с стартует по кнопке «В портфель»
     } else { renderPfNamed(v); pfHists[curPf].unshift({ total, qty: Math.round(v / PB.min * 100) / 100 }); }
     renderPbDone();
     const s = $('screen-pfdone'); s.classList.remove('play'); void s.offsetWidth; // перезапуск анимации появления
@@ -1177,6 +1184,125 @@
   const resetPbuy = () => { pbMode = 'pf'; renderPbTop(); pbIn.value = ''; pbState(''); pbSum(); $('pb-scroll').scrollTop = 0; requestAnimationFrame(pbFit); };
   const openPbuyOpt = (dir) => { pbMode = 'opt'; pbDir = dir; renderPbTop(); pbIn.value = ''; pbState(''); pbSum(); $('pb-scroll').scrollTop = 0; go('pfbuy'); requestAnimationFrame(pbFit); };
   renderPbTop(); pbFit();
+
+  // ---------- Симуляция срабатывания опциона (Figma 299:47802 · 299:48383 · 299:48959 · 299:49186) ----------
+  // Через 30 с после покупки опцион «срабатывает» на любом экране: покупка уходит из портфеля, сверху появляется пуш,
+  // по тапу открывается экран результата. Вероятность: 70 % — сработал, 30 % — нет. Пуш сам исчезает через 10 с.
+  const SIM_DELAY = 30000, SIM_PUSH = 10000, SIM_WIN = 0.7;
+  const simPhone = document.querySelector('.phone');
+  const simEl = document.createElement('div');
+  simEl.innerHTML = `<button class="optpush" id="optpush" hidden aria-live="polite"></button>
+    <section class="optres" id="optres" hidden aria-label="Результат опциона"></section>`;
+  [...simEl.children].forEach((c) => simPhone.appendChild(c));
+  let simSeq = 0; const simResults = {};
+  const simQueue = []; let simPushT = null, simCur = null, simShown = null;
+  const simSign = (n, sg) => `${sg}${NBS}${pbMoney(n).replace(/ /g, NBS)}${NBS}$`;
+  const simLogo = (o, it, cls) => o.und === 'NVDA' ? `<img class="${cls}" src="${A}pbuy/nvidia${cls === 'opp-l' ? 48 : 88}.png" alt="">` : `<span class="${cls}">${logoHtml(it.logo)}</span>`;
+  // Конфетти в фирменных синих — только на позитивный исход: чуть-чуть с пушем, побольше на статусном экране
+  const SIM_BLUES = ['#2563eb', '#1d4ed8', '#1e40af', '#3b82f6', '#4f46e5', '#0ea5e9', '#38bdf8', '#60a5fa', '#93c5fd', '#bfdbfe'];
+  const simCv = document.createElement('canvas'); simCv.className = 'simconf'; simPhone.appendChild(simCv);
+  let simParts = [], simRaf = 0;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  // o: n — число, x0..x1 / y — зона появления (доли экрана), ang — направление вылета (рад, 0 — вправо, -π/2 — вверх; null — просто падает),
+  // spread — разброс угла, v0..v1 — скорость, delay — разброс задержки появления (кадры)
+  function simConfetti(o) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const W = simPhone.offsetWidth, H = simPhone.offsetHeight, dpr = window.devicePixelRatio || 1;
+    if (simCv.width !== W * dpr) { simCv.width = W * dpr; simCv.height = H * dpr; }
+    for (let i = 0; i < o.n; i++) {
+      const a = o.ang == null ? Math.PI / 2 + rnd(-.5, .5) : o.ang + rnd(-o.spread, o.spread), v = o.ang == null ? rnd(.5, 1.6) : rnd(o.v0, o.v1);
+      simParts.push({ x: rnd(o.x0, o.x1) * W, y: o.y * H, vx: Math.cos(a) * v, vy: Math.sin(a) * v, kind: i % 5 === 0 ? 'c' : i % 5 === 1 ? 's' : 'r',
+        w: rnd(7, 13), h: rnd(4, 7), r: rnd(0, 6.28), vr: rnd(-.12, .12), ph: rnd(0, 6.28), fl: rnd(.05, .11), sw: rnd(.2, .7), c: SIM_BLUES[(Math.random() * SIM_BLUES.length) | 0],
+        wait: Math.round(rnd(0, o.delay || 0)), life: 0, max: rnd(170, 250) });
+    }
+    if (!simRaf) simRaf = requestAnimationFrame(simTick);
+  }
+  function simTick() {
+    const ctx = simCv.getContext('2d'), dpr = simCv.width / simPhone.offsetWidth;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, simCv.width, simCv.height);
+    simParts = simParts.filter((p) => p.life < p.max);
+    for (const p of simParts) {
+      if (p.wait > 0) { p.wait--; continue; }
+      p.life++; p.vy += .1; p.vx *= .97; p.vy *= .985; if (p.vy > 2.2) p.vy = 2.2; // воздух тормозит — конфетти плавно парит вниз
+      p.ph += p.fl; p.x += p.vx + Math.sin(p.ph) * p.sw; p.y += p.vy; p.r += p.vr;
+      ctx.save(); ctx.globalAlpha = Math.min(1, (p.max - p.life) / 40, p.life / 6); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.scale(1, Math.cos(p.ph * 1.7)); // переворачивается, как бумага
+      ctx.fillStyle = p.c;
+      if (p.kind === 'c') { ctx.beginPath(); ctx.arc(0, 0, p.h * .8, 0, 6.28); ctx.fill(); }
+      else if (p.kind === 's') ctx.fillRect(-p.w, -1.5, p.w * 2, 3); // серпантин
+      else ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    }
+    simRaf = simParts.length ? requestAnimationFrame(simTick) : 0;
+  }
+  const simBurstPush = () => simConfetti({ n: 36, x0: .05, x1: .95, y: -.02, delay: 50 }); // немного: лёгкий дождь сверху по всей ширине
+  const simBurstRes = () => { // побольше: две «хлопушки» с боков и дождь сверху
+    simConfetti({ n: 34, x0: .02, x1: .06, y: .5, ang: -1.05, spread: .35, v0: 7, v1: 12, delay: 6 });
+    simConfetti({ n: 34, x0: .94, x1: .98, y: .5, ang: -2.09, spread: .35, v0: 7, v1: 12, delay: 6 });
+    simConfetti({ n: 70, x0: .02, x1: .98, y: -.02, delay: 90 });
+  };
+  function simSettle(rec) {
+    const k = optHold.findIndex((h) => h.id === rec.id && h.dir === rec.dir);
+    if (k >= 0) { const h = optHold[k]; h.qty -= rec.qty; h.amount -= rec.amount; if (h.qty <= 0 || h.amount <= 0.005) optHold.splice(k, 1); renderOptHold(); } // инструмент исчезает из портфеля
+    const o = OPT.items[rec.id], it = ST.items[o.und], win = Math.random() < SIM_WIN, r = stRng(rec.id + rec.dir + rec.qty + Date.now());
+    const payout = rec.qty, loss = Math.round(rec.amount * 100) / 100, gap = Math.max(0.01, Math.round(o.strike * (0.004 + r() * 0.012) * 100) / 100);
+    const above = (rec.dir === 'up') === win; // цена на дату закрытия выше целевой, если сбылся рост или не сбылось падение
+    const res = { o, it, dir: rec.dir, win, qty: rec.qty, sum: win ? payout : loss, close: o.strike + (above ? gap : -gap) };
+    if (win) { PB.balance = Math.round((PB.balance + payout) * 100) / 100; const left = fmt2(PB.balance) + ' $'; PB.acc = left; PB.errMax = 'Доступно ' + left; $('pb-acc').textContent = left; }
+    res.id = ++simSeq; simResults[res.id] = res; simEvAdd(res); // плашка в блоке событий на Главной висит, пока пользователь не откроет статусный экран
+    simQueue.push(res); simNext();
+  }
+  const simSchedule = (rec) => setTimeout(() => simSettle(rec), SIM_DELAY);
+  function simNext() {
+    if (simCur || !simQueue.length) return;
+    const res = simCur = simQueue.shift(), el = $('optpush'), { o, it } = res, nm = `${PO.holdName[res.dir]} ${it.navTitle}`;
+    el.className = 'optpush'; el.dataset.win = res.win ? '1' : '0';
+    el.innerHTML = `<span class="opp-lw">${simLogo(o, it, 'opp-l')}<img class="opp-b" src="${A}opt/${res.win ? 'ok' : 'no'}.svg" alt=""></span>
+      <span class="opp-d"><span class="opp-r"><b class="opp-t">${nm} ${simSign(res.sum, res.win ? '+' : '-')}</b><span class="opp-m">Подробнее</span></span>
+      <span class="opp-s">${res.win ? 'Опцион сработал, вы получили доход' : 'Опцион не сработал'}</span></span>`;
+    el.hidden = false; void el.offsetWidth; el.classList.add('in');
+    if (res.win) setTimeout(() => simBurstPush(), 180); // немного конфетти с пушем
+    clearTimeout(simPushT); simPushT = setTimeout(() => simHidePush(), SIM_PUSH);
+  }
+  function simHidePush(after) {
+    clearTimeout(simPushT); const el = $('optpush'); el.classList.remove('in'); el.classList.add('out');
+    setTimeout(() => { el.hidden = true; el.className = 'optpush'; simCur = null; if (after) after(); simNext(); }, 320);
+  }
+  function simEvAdd(res) {
+    const box = document.querySelector('#screen-home .events'); if (!box) return;
+    const nm = res.win ? 'Опцион сработал' : 'Опцион не сработал', v = simSign(res.sum, res.win ? '+' : '-');
+    const t = document.createElement('div');
+    t.innerHTML = `<button class="card event tap" data-sim-ev="${res.id}"><div class="m"><span>Сегодня</span></div><div class="t">${nm}</div><div class="v" style="color:var(--content-${res.win ? 'success' : 'primary'})">${v}</div></button>`;
+    box.prepend(t.firstElementChild);
+  }
+  const simEvRemove = (id) => { const el = document.querySelector(`[data-sim-ev="${id}"]`); if (el) el.remove(); };
+  function simOpenRes(res) {
+    simEvRemove(res.id); delete simResults[res.id]; // после открытия плашка исчезает из событий
+    const { o, it } = res, el = $('optres'), nm = `${PO.holdName[res.dir]} ${it.navTitle}`, row = (k, v) => `<div class="pb-sr"><span>${k}</span><span>${v}</span></div>`;
+    el.innerHTML = `<div class="statusbar"><span class="time">9:41</span><img src="assets/imgFrame1.svg" width="64.6" height="11.3" alt=""></div>
+      <div class="or-nav"><b>Результат опциона</b><button class="or-x tap" data-or-close aria-label="Закрыть"><img src="${A}search/cross.svg" alt=""></button></div>
+      <div class="pd-content or-c">
+        <div class="pd-g o"><div class="pd-og">${simLogo(o, it, 'or-l')}<span class="pd-badge ${res.win ? '' : 'neg'}"><img src="${A}opt/${res.win ? 'ok' : 'no'}.svg" alt=""></span></div></div>
+        <div class="pd-text"><h1 class="pd-t">${res.win ? 'Опцион сработал' : 'Опцион не сработал'}</h1><p class="pd-s">${nm}</p></div>
+        <div class="pb-cell pd-c"><div class="pb-sum">
+          ${row('Целевая цена:', `${stNum(o.strike, 0)}${NBS}$`)}${row('Цена на дату закрытия:', `${stNum(res.close, 2)}${NBS}$`)}
+          ${row('Количество:', `${pbFmt(res.qty).replace(/ /g, NBS)}${NBS}контрактов`)}${row('Выплата на контракт:', `1${NBS}$`)}
+          <div class="pb-sr t"><b>${res.win ? 'Вы получили:' : 'Вы потеряли:'}</b><b class="${res.win ? 'pos' : ''}">${simSign(res.sum, res.win ? '+' : '-')}</b></div>
+        </div></div>
+      </div>
+      <div class="note-buy pd-b"><button class="tap pd-btn" data-or-buy>Купить другой опцион</button></div>`;
+    el.hidden = false; void el.offsetWidth; el.classList.add('open'); el.scrollTop = 0;
+    if (res.win) setTimeout(() => simBurstRes(), 260); // на статусном экране — побольше
+  }
+  function simCloseRes(after) {
+    const el = $('optres'); el.classList.remove('open');
+    setTimeout(() => { if (!el.classList.contains('open')) el.hidden = true; if (after) after(); }, 380);
+  }
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#optpush')) { const res = simCur; if (res) simHidePush(() => {}), simOpenRes(res); return; } // тап по пушу — детальный экран
+    const ev = e.target.closest('[data-sim-ev]'); if (ev) { const r = simResults[ev.dataset.simEv]; if (r) simOpenRes(r); return; } // тап по плашке события — статусный экран
+    if (e.target.closest('[data-or-close]')) { simCloseRes(); return; } // крестик — назад, откуда пришли (экран под оверлеем не менялся)
+    if (e.target.closest('[data-or-buy]')) { simCloseRes(); go('options'); }
+  });
 
   // ---------- Именные портфели (Figma 254:44459) ----------
   const PF = window.PFN; let pfdBack = 'namedpf';
@@ -1672,6 +1798,7 @@
     if (!screens.includes(name)) name = 'home';
     if (name === current) return;
     const prev = current; current = name;
+    if (prev === 'pfdone' && name !== 'pfdone' && simPending) { simSchedule(simPending); simPending = null; } // любой выход со статусного экрана запускает таймер срабатывания опциона
     if (name === 'search' && prev && prev !== 'search' && prev !== 'note' && prev !== 'stock') searchFrom = prev; // поиск — поверх экрана-источника; возврат с ноты его не меняет
     if (name === 'article' && prev && prev !== 'article' && prev !== 'note') articleFrom = prev; // возврат с ноты не меняет источник статьи
     if (name === 'note' && prev && prev !== 'note') noteFrom = prev;
@@ -1742,7 +1869,7 @@
       if (up && n > pbMaxQty()) return;
       pbIn.value = n ? pbFmt(n) : ''; pbState(''); pbFit(); pbSum(); return;
     }
-    if (e.target.closest('[data-pd-port]')) { go('portfolio'); return; }
+    if (e.target.closest('[data-pd-port]')) { if (simPending) { simSchedule(simPending); simPending = null; } go('portfolio'); return; }
     if (e.target.closest('[data-back="namedpf"]')) { go(pfnFrom); return; }
     if (e.target.closest('[data-opt]')) { go('options'); return; }
     if (e.target.closest('[data-back="options"]')) { go(optFrom); return; }
