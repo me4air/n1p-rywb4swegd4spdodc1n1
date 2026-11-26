@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>События прототипа</title>
+<style nonce="__NONCE__">
+  :root {
+    --bg: #f5f6f8; --panel: #fff; --line: #e3e6eb; --text: #14181f; --muted: #6a7482; --accent: #2563eb; --accent-bg: #e8f0fe;
+    --l1: #8a94a3; --l2: #2f7de1; --l3: #12995a; --warn: #c2620a; --bad: #cf3030; --code: #f0f2f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1216; --panel: #171b21; --line: #272d36; --text: #e7eaee; --muted: #8b95a3; --accent: #6ea3ff; --accent-bg: #1c2a44;
+      --l1: #7c8795; --l2: #5aa2f5; --l3: #3fcf8a; --warn: #f0a04b; --bad: #f27575; --code: #1f252d; }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { display: flex; flex-direction: column; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  button, input, select { font: inherit; color: inherit; }
+  .top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  .top h1 { margin: 0; font-size: 16px; font-weight: 650; }
+  .tabs { display: flex; gap: 4px; }
+  .tabs button, .seg button { border: 0; background: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; color: var(--muted); }
+  .tabs button.on, .seg button.on { background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+  .totals { flex: 1; color: var(--muted); font-size: 13px; min-width: 180px; }
+  .live { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; cursor: pointer; }
+  .btn { display: inline-block; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); text-decoration: none; font-size: 13px; white-space: nowrap; }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .cols { flex: 1; min-height: 0; display: grid; grid-template-columns: 270px 290px minmax(0, 1fr); }
+  .col { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--line); background: var(--panel); }
+  .col:last-child { border-right: 0; }
+  .col-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 12px; border-bottom: 1px solid var(--line); font-weight: 600; min-height: 53px; }
+  .col-h input, .col-h select { padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); font-weight: 400; min-width: 0; }
+  .col-h input { flex: 1; }
+  .col-h small { font-weight: 400; color: var(--muted); }
+  .list { flex: 1; overflow: auto; }
+  .item { display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--line); background: none; padding: 10px 12px; cursor: pointer; }
+  .item:hover { background: var(--bg); }
+  .item.on { background: var(--accent-bg); }
+  .item b { display: block; font-weight: 600; overflow-wrap: anywhere; }
+  .item span { display: block; color: var(--muted); font-size: 12.5px; }
+  .item .mark { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 999px; background: var(--l3); color: #fff; font-size: 11.5px; font-weight: 600; }
+  .empty { padding: 28px 16px; color: var(--muted); text-align: center; }
+  .seg { display: flex; gap: 2px; padding: 2px; background: var(--bg); border-radius: 10px; font-weight: 400; }
+  .seg button { padding: 4px 10px; font-size: 13px; }
+  .ev { border-bottom: 1px solid var(--line); padding: 7px 12px; cursor: pointer; }
+  .ev:hover { background: var(--bg); }
+  .ev .row { display: flex; gap: 10px; align-items: baseline; }
+  .ev time { flex: none; width: 54px; color: var(--muted); font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .ev .type { flex: none; font: 600 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .ev.l1 .type { color: var(--l1); font-weight: 500; } .ev.l2 .type { color: var(--l2); } .ev.l3 .type { color: var(--l3); }
+  .ev.l3 { box-shadow: inset 3px 0 0 var(--l3); } .ev.l2 { box-shadow: inset 3px 0 0 var(--l2); }
+  .ev .where { flex: none; color: var(--muted); font-size: 12.5px; }
+  .ev .sum { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ev.open .sum { white-space: normal; }
+  .ev .tag { flex: none; padding: 0 6px; border-radius: 6px; font-size: 11.5px; font-weight: 600; border: 1px solid currentColor; }
+  .ev .tag.stub { color: var(--warn); } .ev .tag.none { color: var(--bad); }
+  .ev pre { margin: 8px 0 2px 64px; padding: 10px; border-radius: 8px; background: var(--code); font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; cursor: text; }
+  .gap { padding: 3px 12px 3px 76px; color: var(--muted); font-size: 12px; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .summary { flex: 1; overflow: auto; padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-content: start; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .card h2 { margin: 0; padding: 12px 14px 4px; font-size: 15px; }
+  .card p { margin: 0; padding: 0 14px 10px; color: var(--muted); font-size: 13px; }
+  .card .scroll { max-height: 520px; overflow: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 6px 14px; text-align: left; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+  th { position: sticky; top: 0; background: var(--panel); color: var(--muted); font-weight: 500; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--l1); }
+  .dot.l2 { background: var(--l2); } .dot.l3 { background: var(--l3); }
+  [hidden] { display: none !important; }
+  @media (max-width: 900px) {
+    .cols { grid-template-columns: 1fr; grid-auto-rows: minmax(160px, auto); overflow: auto; }
+    .col { border-right: 0; border-bottom: 1px solid var(--line); max-height: 60vh; }
+    .col.events { max-height: none; }
+    .ev .where { display: none; } .ev pre { margin-left: 0; } .gap { padding-left: 12px; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>События прототипа</h1>
+  <nav class="tabs"><button data-view="clients" class="on">Клиенты</button><button data-view="summary">Сводка</button></nav>
+  <div class="totals" id="totals">Загрузка…</div>
+  <label class="live"><input type="checkbox" id="live" checked> обновлять каждые 5 с</label>
+  <a class="btn" href="/api/export?format=csv">Выгрузить всё в CSV</a>
+</header>
+
+<main class="cols" id="view-clients">
+  <section class="col">
+    <div class="col-h"><input id="client-q" type="search" placeholder="Код клиента или устройство" aria-label="Поиск клиента"></div>
+    <div class="list" id="clients"></div>
+  </section>
+  <section class="col">
+    <div class="col-h" id="sessions-h">Сессии</div>
+    <div class="list" id="sessions"><div class="empty">Выберите клиента слева</div></div>
+  </section>
+  <section class="col events">
+    <div class="col-h">
+      <div class="seg" id="layers" role="tablist" aria-label="Какие события показывать">
+        <button data-layer="1">Все</button><button data-layer="2" class="on">Без сырых</button><button data-layer="3">Только бизнес</button>
+      </div>
+      <select id="type" aria-label="Тип события"><option value="">Все типы</option></select>
+      <input id="event-q" type="search" placeholder="Поиск по событиям" aria-label="Поиск по событиям">
+      <a class="btn" id="export-session" hidden>CSV</a>
+    </div>
+    <div class="list" id="events"><div class="empty">Выберите сессию, чтобы увидеть ленту событий</div></div>
+  </section>
+</main>
+
+<main class="summary" id="view-summary" hidden></main>
+
+<script nonce="__NONCE__">
+(function () {
+  'use strict';
+  // Данные событий приходят из открытого эндпоинта, поэтому в разметку попадают только через textContent
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const api = (path) => fetch(path, { credentials: 'same-origin', cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  const p2 = (n) => String(n).padStart(2, '0');
+  const MON = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+  const day = (ms) => { const d = new Date(ms); return `${d.getDate()} ${MON[d.getMonth()]}, ${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+  const clock = (ms) => { const d = new Date(ms); return `${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`; };
+  const dur = (ms) => { if (ms == null) return '—'; const s = Math.round(ms / 1000); return s < 60 ? `${s} с` : s < 3600 ? `${Math.floor(s / 60)} мин ${s % 60} с` : `${Math.floor(s / 3600)} ч ${Math.floor(s % 3600 / 60)} мин`; };
+  const ago = (ms) => { const s = (Date.now() - ms) / 1000; return s < 60 ? 'только что' : s < 3600 ? `${Math.floor(s / 60)} мин назад` : s < 86400 ? `${Math.floor(s / 3600)} ч назад` : day(ms); };
+  const plural = (n, a, b, c) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? a : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? b : c}`;
+  const clientName = (c) => c.user_id ? c.user_id : 'Устройство ' + String(c.client).slice(0, 8);
+
+  // ---------- человекочитаемое описание события ----------
+  const OUT = { navigate: 'переход', state: 'изменение', stub: 'заглушка', none: 'ничего' };
+  const TRIG = { tap: 'тап', back_button: 'кнопка «Назад»', tabbar: 'таб-бар', browser_nav: 'назад в браузере', initial: 'открытие', auto: 'само' };
+  const ERR = { empty: 'пусто', min: 'меньше минимума', max: 'больше доступного', invalid: 'неверное значение' };
+  const PROD = { structured_note: 'нота', named_portfolio: 'портфель', option: 'опцион', advisory: 'Advisory' };
+  const DIR = { up: 'на рост', down: 'на падение' };
+  const qt = (s) => s ? `«${s}»` : '';
+  const prod = (p) => p.product_name || `${PROD[p.product_type] || p.product_type || ''} ${p.product_id || ''}${p.direction ? ' ' + DIR[p.direction] : ''}`.trim();
+  const amount = (p) => p.unit === 'contracts' ? `${p.qty} шт.` : `${p.amount} $`;
+  const SUM = {
+    session_started: (p) => `новая сессия, вход на ${p.entry_screen}`,
+    app_loaded: (p) => p.is_reload ? `перезагрузка страницы${p.reload_reason ? ' (' + p.reload_reason + ')' : ''}` : 'страница загружена',
+    app_backgrounded: (p) => `вкладка скрыта, была видна ${dur(p.visible_ms)}`,
+    app_foregrounded: (p) => `вернулся во вкладку через ${dur(p.hidden_ms)}`,
+    screen_viewed: (p, e) => `${p.prev_screen || '—'} → ${e.screen}${p.mode ? ' (' + p.mode + ')' : ''} · ${TRIG[p.trigger] || p.trigger}${p.prev_screen_ms ? ' · на прошлом экране ' + dur(p.prev_screen_ms) : ''}`,
+    tab_selected: (p) => `вкладка ${qt(p.tab_name)}, была ${p.prev_tab}`,
+    sheet_opened: (p) => `шторка ${qt(p.title || p.sheet_id)}`,
+    sheet_closed: (p) => `шторка закрыта: ${p.close_method}${p.selected_option ? ', выбрано ' + p.selected_option : ''}`,
+    snackbar_shown: (p) => qt(p.text),
+    snackbar_dismissed: (p) => `скрыт (${p.method}), показывался ${dur(p.shown_ms)}`,
+    hint_opened: (p) => `подсказка ${qt(p.label || p.hint_key)}`,
+    accordion_toggled: (p) => `${p.state === 'open' ? 'раскрыл' : 'свернул'} ${qt(p.question)}`,
+    element_tapped: (p) => `${qt(p.element_text)} ${p.element_id}${p.to_screen ? ' → ' + p.to_screen : ''}`.trim(),
+    input_focused: (p) => p.field_id,
+    input_changed: (p) => `${p.field_id} = ${p.value === '' ? '(пусто)' : p.value}`,
+    input_blurred: (p) => `${p.field_id} = ${p.value == null || p.value === '' ? '(пусто)' : p.value}${p.validation && p.validation !== 'ok' ? ' · ' + (ERR[p.validation] || p.validation) : ''}`,
+    input_cleared: (p) => `${p.field_id}, было ${qt(p.prev_value)}`,
+    scroll_depth_reached: (p) => `долистал до ${p.depth_pct}%`,
+    carousel_scrolled: (p) => `лента ${p.section ? qt(p.section) : p.carousel_id}: ${p.max_position} из ${p.items_total}`,
+    chart_scrubbed: (p) => `вёл пальцем по графику ${dur(p.duration_ms)}`,
+    chart_panned: (p) => `пролистал график в историю на ${p.max_offset_pct}%`,
+    search_query_entered: (p) => `запрос ${qt(p.query)}, найдено ${p.results_count}`,
+    search_closed: (p) => `закрыл поиск${p.last_query ? ', последний запрос ' + qt(p.last_query) : ''}`,
+    catalog_filter_changed: (p) => `фильтр ${p.filter}, бумаг ${p.results_count}`,
+    catalog_platform_changed: (p) => `площадка ${p.platform}`,
+    instrument_tapped: (p) => `${p.name}${p.ticker ? ' (' + p.ticker + ')' : ''}${p.section || p.group ? ' · ' + (p.group || p.section) : ''}${p.is_available ? '' : ' · страницы нет'}`,
+    news_tapped: (p) => `${qt(p.title)}${p.is_available ? '' : ' · статьи нет'}`,
+    article_read: (p) => `читал ${dur(p.read_ms)}, долистал до ${p.max_scroll_pct}%`,
+    banner_tapped: (p) => `${qt(p.title)} · ${p.placement} → ${p.target === 'stub' ? 'заглушка' : p.target === 'none' ? 'ничего' : p.target}`,
+    stock_chart_range_changed: (p) => `${p.ticker}: период ${p.range}`,
+    stock_chart_mode_changed: (p) => `${p.ticker}: ${p.mode === 'candle' ? 'свечи' : 'линия'}`,
+    favorite_toggled: (p) => `${p.entity_id}: ${p.state === 'on' ? 'в избранное' : 'из избранного'}`,
+    trade_tapped: (p) => `${p.side === 'buy' ? 'Купить' : 'Продать'} ${p.ticker} · заглушка`,
+    orderbook_direction_changed: (p) => `стакан ${DIR[p.direction] || p.direction}`,
+    document_tapped: (p) => qt(p.doc_title),
+    product_opened: (p) => `${prod(p)} · с экрана ${p.source_screen || '—'}`,
+    product_buy_tapped: (p) => `${prod(p)} · ${p.result === 'stub' ? 'заглушка' : 'открыта покупка'}`,
+    product_sell_tapped: (p) => `${prod(p)} · заглушка`,
+    purchase_started: (p) => `${prod(p)} · свободно ${p.free_balance} $`,
+    purchase_direction_changed: (p) => DIR[p.direction] || p.direction,
+    purchase_amount_changed: (p) => `${p.value ?? '(пусто)'} ${p.unit === 'contracts' ? 'шт.' : '$'}${p.total ? ' · итого ' + p.total + ' $' : ''}`,
+    purchase_validation_failed: (p) => `${ERR[p.error] || p.error}: введено ${p.value ?? '—'}${p.min ? ', минимум ' + p.min : ''}`,
+    purchase_submitted: (p) => p.result === 'success' ? `${amount(p)} · успешно` : `ошибка: ${ERR[p.error] || p.error}`,
+    purchase_completed: (p) => `${prod(p)} · ${amount(p)} · итого ${p.total} $ · остаток ${p.balance_after} $`,
+    purchase_abandoned: (p) => `ушёл без покупки на ${p.to_screen}, последнее значение ${p.last_value ?? '—'}`,
+    option_settled: (p) => `опцион ${p.result === 'win' ? 'сработал' : 'не сработал'} · ${p.amount} $`,
+    option_push_shown: (p) => qt(p.title),
+    option_push_tapped: (p) => qt(p.title),
+    option_push_expired: (p) => `пуш исчез через ${dur(p.shown_ms)}`,
+    option_result_viewed: (p) => `${p.option_name}: ${p.result === 'win' ? 'сработал' : 'не сработал'} · ${p.amount} $`,
+    option_result_closed: (p) => p.action === 'buy_another' ? '«Купить другой опцион»' : `закрыл через ${dur(p.view_ms)}`,
+    portfolio_currency_changed: (p) => `валюта ${p.currency}`,
+    platform_list_toggled: (p) => `${p.platform}: ${p.state === 'open' ? 'развернул' : 'свернул'}`,
+    balance_action_tapped: (p) => `${p.action} · ${p.platform} ${p.currency}${p.is_available ? '' : ' · заглушка'}`,
+    transfer_started: (p) => `${p.platform}: ${p.from} → ${p.to}`,
+    transfer_accounts_swapped: (p) => `${p.from} → ${p.to}`,
+    transfer_amount_changed: (p) => `${p.value ?? '(пусто)'} ${p.currency}${p.calc_receive ? ' → ' + p.calc_receive + ' ' + p.currency_to : ''}`,
+    transfer_validation_failed: (p) => `${ERR[p.error] || p.error}: введено ${p.value ?? '—'}`,
+    transfer_submitted: (p) => p.result === 'success' ? `${p.value} ${p.currency_from} · успешно` : `ошибка: ${ERR[p.error] || p.error}`,
+    transfer_completed: (p) => `${p.amount_from} ${p.currency_from} → ${p.amount_to} ${p.currency_to}`,
+    transfer_abandoned: (p) => `ушёл без перевода на ${p.to_screen}`,
+    setting_toggled: (p) => `${p.setting}: ${p.value ? 'вкл' : 'выкл'}`,
+    theme_changed: (p) => `тема ${p.theme}`,
+    js_error: (p) => `${p.message} (${p.source}:${p.line})`,
+  };
+  function summarize(e) {
+    const p = e.props || {};
+    try { if (SUM[e.event_type]) return SUM[e.event_type](p, e); } catch (err) {}
+    return Object.keys(p).slice(0, 4).map((k) => `${k}=${typeof p[k] === 'object' ? JSON.stringify(p[k]) : p[k]}`).join(' · ');
+  }
+
+  // ---------- состояние ----------
+  const S = { clients: [], client: null, sessions: [], session: null, events: [], layer: 2, type: '', q: '', clientQ: '', open: new Set() };
+
+  function renderTotals(t) {
+    $('totals').textContent = t.events ? `${plural(t.clients, 'клиент', 'клиента', 'клиентов')} · ${plural(t.sessions, 'сессия', 'сессии', 'сессий')} · ${plural(t.events, 'событие', 'события', 'событий')} · последнее ${ago(t.last_seen)}` : 'Событий пока нет';
+  }
+  function renderClients() {
+    const box = $('clients'), needle = S.clientQ.toLowerCase();
+    const list = S.clients.filter((c) => !needle || String(c.client).toLowerCase().includes(needle) || String(c.user_id || '').toLowerCase().includes(needle));
+    box.textContent = '';
+    if (!list.length) { box.appendChild(el('div', 'empty', S.clients.length ? 'Никого не нашлось' : 'Событий пока нет. Откройте прототип и сделайте пару действий.')); return; }
+    list.forEach((c) => {
+      const b = el('button', 'item' + (S.client === c.client ? ' on' : ''));
+      const name = el('b', '', clientName(c));
+      if (c.business) name.appendChild(el('i', 'mark', c.business)).title = 'бизнес-событий';
+      b.appendChild(name);
+      b.appendChild(el('span', '', `${plural(c.sessions, 'сессия', 'сессии', 'сессий')} · ${plural(c.events, 'событие', 'события', 'событий')}`));
+      b.appendChild(el('span', '', ago(c.last_seen)));
+      b.addEventListener('click', () => selectClient(c.client));
+      box.appendChild(b);
+    });
+  }
+  function renderSessions() {
+    const box = $('sessions');
+    const c = S.clients.filter((x) => x.client === S.client)[0];
+    $('sessions-h').textContent = c ? clientName(c) : 'Сессии';
+    box.textContent = '';
+    if (!S.client) { box.appendChild(el('div', 'empty', 'Выберите клиента слева')); return; }
+    S.sessions.forEach((s) => {
+      const b = el('button', 'item' + (S.session === s.session_id ? ' on' : '')), ctx = s.context || {};
+      const name = el('b', '', day(s.started));
+      if (s.purchases) name.appendChild(el('i', 'mark', plural(s.purchases, 'покупка', 'покупки', 'покупок')));
+      b.appendChild(name);
+      b.appendChild(el('span', '', `${dur(s.ended - s.started)} · ${plural(s.screens || 0, 'экран', 'экрана', 'экранов')} · ${plural(s.events, 'событие', 'события', 'событий')}`));
+      b.appendChild(el('span', '', [ctx.platform, ctx.input_type, ctx.viewport].filter(Boolean).join(' · ')));
+      b.addEventListener('click', () => selectSession(s.session_id));
+      box.appendChild(b);
+    });
+  }
+  function renderTypes() {
+    const sel = $('type'), counts = {};
+    S.events.forEach((e) => { counts[e.event_type] = (counts[e.event_type] || 0) + 1; });
+    sel.textContent = '';
+    sel.appendChild(new Option('Все типы', ''));
+    Object.keys(counts).sort().forEach((t) => sel.appendChild(new Option(`${t} (${counts[t]})`, t)));
+    sel.value = counts[S.type] ? S.type : '';
+    S.type = sel.value;
+  }
+  function renderEvents() {
+    const box = $('events'), keepTop = box.scrollTop, atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+    box.textContent = '';
+    if (!S.session) { box.appendChild(el('div', 'empty', 'Выберите сессию, чтобы увидеть ленту событий')); return; }
+    const needle = S.q.toLowerCase(), start = S.events.length ? S.events[0].time : 0;
+    const list = S.events.filter((e) => (e.layer || 3) >= S.layer && (!S.type || e.event_type === S.type) && (!needle || (e.event_type + ' ' + summarize(e) + ' ' + JSON.stringify(e.props)).toLowerCase().includes(needle)));
+    if (!list.length) { box.appendChild(el('div', 'empty', 'Под этот фильтр ничего не попало')); return; }
+    let prev = null;
+    const frag = document.createDocumentFragment();
+    list.forEach((e) => {
+      if (prev && e.time - prev.time >= 30000) frag.appendChild(el('div', 'gap', `пауза ${dur(e.time - prev.time)}`));
+      prev = e;
+      const p = e.props || {}, off = Math.max(0, Math.round((e.time - start) / 1000));
+      const row = el('div', 'ev l' + (e.layer || 3) + (S.open.has(e.event_id) ? ' open' : '')), line = el('div', 'row');
+      const t = el('time', '', `+${p2(Math.floor(off / 60))}:${p2(off % 60)}`); t.title = `${day(e.time)}:${p2(new Date(e.time).getSeconds())}`;
+      line.appendChild(t);
+      line.appendChild(el('span', 'type', e.event_type));
+      line.appendChild(el('span', 'sum', summarize(e)));
+      if (e.event_type === 'element_tapped' && (p.outcome === 'stub' || p.outcome === 'none')) line.appendChild(el('span', 'tag ' + p.outcome, OUT[p.outcome]));
+      line.appendChild(el('span', 'where', [e.screen, e.screen_tab, e.entity_id].filter(Boolean).join(' / ')));
+      row.appendChild(line);
+      if (S.open.has(e.event_id)) row.appendChild(details(e));
+      row.addEventListener('click', (ev) => {
+        if (ev.target.closest('pre') || String(getSelection())) return;
+        if (S.open.has(e.event_id)) { S.open.delete(e.event_id); row.classList.remove('open'); const pre = row.querySelector('pre'); if (pre) pre.remove(); }
+        else { S.open.add(e.event_id); row.classList.add('open'); row.appendChild(details(e)); }
+      });
+      frag.appendChild(row);
+    });
+    box.appendChild(frag);
+    box.scrollTop = atEnd && keepTop > 0 ? box.scrollHeight : keepTop;
+  }
+  function details(e) {
+    const o = { time: `${day(e.time)}:${p2(new Date(e.time).getSeconds())}`, seq: e.seq, screen: e.screen };
+    ['screen_tab', 'entity_type', 'entity_id', 'overlay'].forEach((k) => { if (e[k]) o[k] = e[k]; });
+    o.props = e.props; o.event_id = e.event_id;
+    return el('pre', '', JSON.stringify(o, null, 2));
+  }
+
+  // ---------- сводка ----------
+  function table(head, rows) {
+    const t = el('table'), tr = el('tr');
+    head.forEach(([h, cls]) => tr.appendChild(el('th', cls || '', h)));
+    t.appendChild(el('thead')).appendChild(tr);
+    const body = t.appendChild(el('tbody'));
+    rows.forEach((cells) => { const r = el('tr'); cells.forEach((c, i) => { const td = el('td', head[i][1] || ''); if (c instanceof Node) td.appendChild(c); else td.textContent = c == null ? '' : c; r.appendChild(td); }); body.appendChild(r); });
+    return t;
+  }
+  function card(title, note, content) {
+    const c = el('section', 'card'); c.appendChild(el('h2', '', title)); c.appendChild(el('p', '', note));
+    const s = el('div', 'scroll'); s.appendChild(content); c.appendChild(s); return c;
+  }
+  function renderSummary(d) {
+    const box = $('view-summary'); box.textContent = '';
+    const typeCell = (r) => { const s = el('span'); s.appendChild(el('i', 'dot l' + r.layer)); s.appendChild(el('code', '', r.event_type)); return s; };
+    box.appendChild(card('Чего не хватило клиентам', 'Тапы, после которых показалась заглушка или ничего не произошло. Отсортировано по числу клиентов.',
+      table([['Элемент'], ['Надпись'], ['Итог'], ['Клиентов', 'n'], ['Тапов', 'n']], d.dead_taps.map((r) => [el('code', '', r.element_id), r.text, OUT[r.outcome] || r.outcome, r.clients, r.taps]))));
+    box.appendChild(card('События по типам', 'Зелёные — бизнес-события, синие — навигация и интерфейс, серые — сырые взаимодействия.',
+      table([['Событие'], ['Клиентов', 'n'], ['Всего', 'n']], d.by_type.map((r) => [typeCell(r), r.clients, r.events]))));
+    box.appendChild(card('Экраны', 'Сколько клиентов дошло до каждого экрана и сколько раз его открывали.',
+      table([['Экран'], ['Клиентов', 'n'], ['Просмотров', 'n']], d.screens.map((r) => [el('code', '', r.screen), r.clients, r.views]))));
+  }
+
+  // ---------- загрузка ----------
+  const fail = (err) => { $('totals').textContent = 'Не удалось загрузить данные: ' + err.message; };
+  function loadClients() {
+    return Promise.all([api('/api/clients'), api('/api/summary')]).then(([clients, summary]) => {
+      S.clients = clients; renderTotals(summary.total); renderClients();
+      if (!$('view-summary').hidden) renderSummary(summary);
+    }).catch(fail);
+  }
+  function selectClient(id) {
+    S.client = id; S.session = null; S.events = []; S.open.clear();
+    renderClients(); renderEvents(); $('export-session').hidden = true;
+    return api('/api/sessions?client=' + encodeURIComponent(id)).then((rows) => {
+      if (S.client !== id) return;
+      S.sessions = rows; renderSessions();
+      if (rows.length) return selectSession(rows[0].session_id);
+    }).catch(fail);
+  }
+  function selectSession(id) {
+    S.session = id; renderSessions();
+    const link = $('export-session'); link.hidden = false; link.href = '/api/export?format=csv&session=' + encodeURIComponent(id);
+    return api('/api/events?limit=20000&session=' + encodeURIComponent(id)).then((rows) => {
+      if (S.session !== id) return;
+      S.events = rows; renderTypes(); renderEvents();
+    }).catch(fail);
+  }
+  function refresh() {
+    if (!$('live').checked || document.hidden) return;
+    loadClients();
+    if (S.client) api('/api/sessions?client=' + encodeURIComponent(S.client)).then((rows) => { S.sessions = rows; renderSessions(); }).catch(() => {});
+    if (S.session) {
+      const id = S.session, last = S.events.reduce((m, e) => Math.max(m, e.id), 0);
+      api(`/api/events?limit=20000&session=${encodeURIComponent(id)}&after=${last}`).then((rows) => {
+        if (S.session !== id || !rows.length) return;
+        S.events = S.events.concat(rows).sort((a, b) => a.time - b.time || a.seq - b.seq || a.id - b.id);
+        renderTypes(); renderEvents();
+      }).catch(() => {});
+    }
+  }
+
+  // ---------- управление ----------
+  document.querySelector('.tabs').addEventListener('click', (e) => {
+    const v = e.target.dataset.view; if (!v) return;
+    document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('on', b === e.target));
+    $('view-clients').hidden = v !== 'clients'; $('view-summary').hidden = v !== 'summary';
+    if (v === 'summary') api('/api/summary').then(renderSummary).catch(fail);
+  });
+  $('layers').addEventListener('click', (e) => {
+    const l = e.target.dataset.layer; if (!l) return;
+    S.layer = +l; document.querySelectorAll('#layers button').forEach((b) => b.classList.toggle('on', b === e.target)); renderEvents();
+  });
+  $('type').addEventListener('change', (e) => { S.type = e.target.value; renderEvents(); });
+  $('event-q').addEventListener('input', (e) => { S.q = e.target.value.trim(); renderEvents(); });
+  $('client-q').addEventListener('input', (e) => { S.clientQ = e.target.value.trim(); renderClients(); });
+
+  loadClients().then(() => { if (S.clients.length) selectClient(S.clients[0].client); });
+  setInterval(refresh, 5000);
+})();
+</script>
+</body>
+</html>
