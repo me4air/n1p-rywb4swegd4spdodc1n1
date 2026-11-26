@@ -1309,3 +1309,13 @@ button.cur-chip { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .optpush.in, .optpush.out { animation-duration: .01s; } .optres { transition: none; } }
 .optres .note-buy.pd-b { background: var(--bg-main); }
 .simconf { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 70; pointer-events: none; }
+/* логотипы-плитки вне списков (покупка, пуш, экран результата): те же правила, что в .instr */
+.pb-lg .tile, .opp-l .tile, .or-l .tile { box-sizing: border-box; display: flex; align-items: center; justify-content: center; border-radius: var(--r-m); overflow: hidden; }
+.pb-lg .tile img, .opp-l .tile img, .or-l .tile img { width: 100%; height: 100%; object-fit: contain; }
+.pb-lg .tile img.inv, .opp-l .tile img.inv, .or-l .tile img.inv { filter: invert(1); }
+.pb-lg .logo, .opp-l .logo { width: 48px; height: 48px; flex: none; }
+.or-l .logo { width: 88px; height: 88px; padding: 18px !important; }
+.pb-lg .logo.tile, .opp-l .logo.tile { box-shadow: inset 0 0 0 1px var(--stroke-secondary); }
+.pd-ol .tile { box-sizing: border-box; display: flex; align-items: center; justify-content: center; border-radius: var(--r-m); overflow: hidden; box-shadow: inset 0 0 0 1px var(--stroke-secondary); }
+.pd-ol .tile img { width: 100%; height: 100%; object-fit: contain; }
+.pd-ol .tile img.inv { filter: invert(1); }
