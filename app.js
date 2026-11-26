@@ -387,7 +387,7 @@
     const grid = card.closest('.cond-grid') || $('cond-grid'), ic = card.querySelector('.ci');
     const h = document.createElement('div');
     h.id = 'note-hint'; h.className = 'note-hint';
-    h.innerHTML = `<div class="nh-box">${NT.overview.hints[card.dataset.hint] || window.OPT.hints[card.dataset.hint] || window.PFD.daulet.hints[card.dataset.hint]}</div><svg class="nh-tail" width="16" height="10" viewBox="0 0 16 10" aria-hidden="true"><path d="M0 0H16L8 10Z" fill="rgba(18,18,18,.8)"/></svg>`;
+    h.innerHTML = `<div class="nh-box">${NT.overview.hints[card.dataset.hint] || window.OPT.hints[card.dataset.hint] || window.PFD.dalio.hints[card.dataset.hint]}</div><svg class="nh-tail" width="16" height="10" viewBox="0 0 16 10" aria-hidden="true"><path d="M0 0H16L8 10Z" fill="rgba(18,18,18,.8)"/></svg>`;
     grid.appendChild(h);
     h.style.top = (card.offsetTop - h.offsetHeight - 4) + 'px';
     h.querySelector('.nh-tail').style.left = (ic.offsetLeft - 16) + 'px';
@@ -796,7 +796,7 @@
   $('sn-act').addEventListener('click', hideSnack);
 
   // ---------- Детальная страница портфеля (Figma 254:44992) ----------
-  const PD = window.PFD.daulet;
+  const PD = window.PFD.dalio;
   (function () {
     const info = '<i class="ci"></i>', W = 311, H = 165, X0 = 35, gy = (v) => 94 - v * 3.9;
     const line = (arr, col) => `<path d="M${arr.map((v, i) => `${(X0 + i / (arr.length - 1) * (W - X0)).toFixed(1)} ${gy(v).toFixed(1)}`).join('L')}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
@@ -861,7 +861,11 @@
     $('screen-pfdetail').innerHTML = `
       <div class="note-nav"><button class="back tap" data-back="pfdetail" aria-label="Назад"><i></i></button><b>${PD.navTitle}</b><span class="sp"></span></div>
       <div class="note-scroll" id="pfd-scroll">
-        <div class="adv-pad"><img class="pfd-hero" src="${A}portfolios/${PD.hero}" alt=""></div>
+        <div class="adv-pad"><div class="pfd-banner" style="background:${PD.hero.bg}">
+          <img src="${A}portfolios/${PD.hero.img}" style="${PD.hero.imgStyle}" alt="">
+          <b class="pb-t">${PD.hero.title}</b><p>${PD.hero.text}</p>
+          <div class="pb-chip"><div><span>${PD.hero.risk[0]}</span><b>${PD.hero.risk[1]}</b></div><i></i><div><span>${PD.hero.sum[0]}</span><b>${PD.hero.sum[1]}</b></div></div>
+        </div></div>
         <div class="pfd-tabs" role="tablist">${PD.tabs.map((t, i) => `<button class="pfd-chip tap${i ? '' : ' selected'}" data-pfd-tab="${i}" role="tab">${t}</button>`).join('')}</div>
         ${panes.map((h, i) => `<div class="pfd-pane" data-pfd-pane="${i}"${i ? ' hidden' : ''}>${h}</div>`).join('')}
       </div>
@@ -1130,7 +1134,7 @@
         <div class="ex-top"><div class="ex-bg" style="background:${x.bg}"></div>
           <img src="${A}portfolios/${x.img}" style="${x.imgStyle}" alt="">
           <span class="ex-cap">${x.cap}</span>
-          <div class="ex-txt"><b>${x.name}</b><div class="ex-q"><p style="width:195px;height:44px">${x.text}</p></div></div></div>
+          <div class="ex-txt"><b>${x.name}</b><div class="ex-q"><p style="width:${x.textW || 195}px;height:44px">${x.text}</p></div></div></div>
         <div class="ex-rows">${x.rows.map(([k, v], n) => `<div class="exr"><span style="${n ? 'width:130px;flex:none' : ''}">${k}</span><b class="${n ? '' : 'pos'}"${n ? '' : ' style="flex:none;white-space:nowrap"'}>${v}</b></div>`).join('')}</div>
       </div></div>`).join('')}
     </div>`;

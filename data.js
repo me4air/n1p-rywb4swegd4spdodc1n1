@@ -7,7 +7,7 @@ window.DATA = {
 
   mainBanners: [ // DESIGN (Figma 253:18642, обновлено 2026-11-19): первые два пока без действия, «Жолбарыс электро» ведёт на ноту
     { opt: true, title: ['Событийные опционы'], sub: 'Заработайте на прогнозе роста или падения бумаг', bg: 'linear-gradient(180deg,#28314d,#00083e)', imgBox: 'banner-arrows.png' },
-    { pfn: true, title: ['Именные портфели'], sub: 'Даулет Акижанов, Ильяс Нейронов и другие', bg: 'linear-gradient(-4.63deg,#700334 37.93%,#ee6568 180.76%)', imgBox: 'banner-hype.png' },
+    { pfn: true, title: ['Именные портфели'], sub: 'Рэй Далио, Уоррен Баффет и Питер Тиль', bg: 'linear-gradient(-4.63deg,#700334 37.93%,#ee6568 180.76%)', imgBox: 'banner-hype.png' },
     { note: true, title: ['Жолбарыс электро'], sub: 'Доход на росте нейросетей и энергетики', bg: 'linear-gradient(-4.64deg,#021e5e 32.85%,#9f5d4b 180.74%)', imgBox: 'banner-tiger.png' },
   ],
 
