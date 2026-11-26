@@ -1918,8 +1918,9 @@
   setTimeout(lgReveal, 2200); // если видео не загрузилось или автоплей запрещён — шторка всё равно выезжает
   lgVideo.play && lgVideo.play().catch(() => lgReveal());
   try { if (sessionStorage.getItem('n1p-after-login')) { sessionStorage.removeItem('n1p-after-login'); phoneEl.classList.add('enter'); setTimeout(() => phoneEl.classList.remove('enter'), 500); } } catch (e) {}
-  const lgNeeded = !location.hash || location.hash === '#/' || location.hash === '#/login';
-  if (lgNeeded) { loginEl.hidden = false; phoneEl.classList.add('login-on'); } else { lgDone = true; }
+  const LOGIN_ON = false; // временно: прототип открывается сразу с Главной; экран входа не удалён — вернуть, поставив true
+  const lgNeeded = LOGIN_ON && (!location.hash || location.hash === '#/' || location.hash === '#/login');
+  if (lgNeeded) { loginEl.hidden = false; phoneEl.classList.add('login-on'); } else { lgDone = true; lgVideo.pause(); }
 
   // ---------- Нижняя навигация и переходы между экранами ----------
   // Живые вкладки: Главная и Портфель (остальных экранов в макетах пока нет)
